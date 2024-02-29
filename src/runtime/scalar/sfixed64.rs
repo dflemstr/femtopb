@@ -1,0 +1,9 @@
+crate::runtime::macros::fixed_width!(
+    'a,
+    i64,
+    crate::item_encoding::SFixed64,
+    8,
+    encoding::WireType::SixtyFourBit,
+    put_i64_le,
+    get_i64_le
+);

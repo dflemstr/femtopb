@@ -1,0 +1,16 @@
+[package]
+name = "femtopb-build"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.81"
+prettyplease = "0.2.17"
+proc-macro2 = "1.0.79"
+prost-build = "0.12.3"
+protox = "0.6.0"
+quote = "1.0.35"
+syn = "2.0.57"
+tracing = "0.1.40"

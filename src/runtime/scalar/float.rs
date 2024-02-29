@@ -1,0 +1,9 @@
+crate::runtime::macros::fixed_width!(
+    'a,
+    f32,
+    crate::item_encoding::Float,
+    4,
+    encoding::WireType::ThirtyTwoBit,
+    put_f32_le,
+    get_f32_le
+);
