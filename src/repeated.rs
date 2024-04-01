@@ -1,14 +1,19 @@
+//! `Repeated` scalar or composite values.
 use crate::list::MessageBuffer;
 use crate::{encoding, list};
 use crate::{error, item_encoding};
 use core::marker;
 use core::{fmt, slice};
 
+/// A sparse encoding of a sequence of scalar values.
+///
+/// Use `.iter()` to iterate through the elements of this `Repeated`.
 #[repr(transparent)]
 pub struct Repeated<'a, A, E>(list::List<'a, A>, marker::PhantomData<E>)
 where
     E: item_encoding::ItemEncoding<'a, A>;
 
+/// An iterator for a `Repeated`.
 #[derive(Clone, Debug, Default)]
 pub enum Iter<'a, A, E>
 where
@@ -27,14 +32,19 @@ impl<'a, A, E> Repeated<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
+    /// Creates a new, empty `Repeated` with minimal memory footprint.
     pub const fn empty() -> Self {
         Self(list::List::empty(), marker::PhantomData)
     }
 
+    /// Creates a `Repeated` that uses the specified slice as its storage.
+    ///
+    /// The slice must live as long as this `Repeated` does.
     pub const fn from_slice(slice: &'a [A]) -> Self {
         Self(list::List::from_slice(slice), marker::PhantomData)
     }
 
+    // Used internally by the runtime during decoding
     pub const fn from_msg_buf(tag: u32, data: &'a [u8]) -> Self {
         Self(list::List::from_msg_buf(tag, data), marker::PhantomData)
     }

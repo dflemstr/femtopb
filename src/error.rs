@@ -1,3 +1,4 @@
+//! Common error type definitions
 use crate::encoding;
 
 /// A Protobuf message decoding error.
@@ -8,20 +9,37 @@ use crate::encoding;
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum DecodeError {
+    /// We were unable to decode a varint; the buffer was corrupted.
     InvalidVarint,
+    /// The decoded varint was larger than expected; the too-large value is enclosed.
     VarintTooLarge(u64),
-    RecursionLimitReached,
+    /// The provided buffer was too short to be able to decode the desired data.
     BufferUnderflow,
-    DelimitedLengthExceeded,
+    /// An end group tag was encountered without a matching start group tag.
     UnexpectedEndGroupTag,
+    /// The specified wire type value was too large; the too-large value is enclosed.
     InvalidWireTypeValue(u64),
+    /// We expected a different wire type value than the one that was encountered.
     UnexpectedWireTypeValue {
+        /// The encountered wire type from the decoded buffer.
         actual: encoding::WireType,
+        /// The wire type we were expecting to see.
+        ///
+        /// Other wire types might also be expected for backwards compatibility reasons, but
+        /// this indicates the main "happy path" wire type that was expected.
         expected: encoding::WireType,
     },
+    /// The encountered tag was different from the one we were expecting; the wrong tag value is
+    /// enclosed.
     UnexpectedTagValue(u32),
+    /// The encountered key value was out of range; the out-of-range value is enclosed.
     InvalidKeyValue(u64),
+    /// The encountered tag value was out of range; the out-of-range value is enclosed.
+    ///
+    /// This is different from `InvalidKeyValue` in the sense that the key had a valid wire type,
+    /// but invalid field tag value.
     InvalidTagValue(u32),
+    /// The encountered string field does not contain valid UTF-8 data.
     InvalidUtf8(core::str::Utf8Error),
 }
 
@@ -32,11 +50,14 @@ pub enum DecodeError {
 /// infallible.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct EncodeError {
-    required: usize,
-    remaining: usize,
+    /// How much space was required for the encode operation to complete
+    pub required: usize,
+    /// How much space actually remains in the buffer
+    pub remaining: usize,
 }
 
 impl EncodeError {
+    /// Creates a new `EncodeError` with fields as documented in the struct definition.
     pub fn new(required: usize, remaining: usize) -> Self {
         Self {
             required,

@@ -1,3 +1,7 @@
+//! Metadata tracking types for handling unknown fields.
+
+/// A type for encoding, paradoxically, which fields are *known*, so that we know which ones to
+/// avoid when finding *unknown* fields.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct UnknownFields<'a> {
     known_tags: &'static [u32],
@@ -6,6 +10,8 @@ pub struct UnknownFields<'a> {
 }
 
 impl<'a> UnknownFields<'a> {
+    /// Constructs a new unknown fields struct with the assumptions that all the fields in the
+    /// surrounding message are known.
     pub const fn empty() -> Self {
         UnknownFields {
             known_tags: &[],

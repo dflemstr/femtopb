@@ -1,14 +1,19 @@
+//! `Packed` scalar values.
 use core::{fmt, marker, slice};
 
 use crate::error;
 use crate::list;
 use crate::{encoding, item_encoding};
 
+/// A tightly-packed encoding of a sequence of scalar values.
+///
+/// Use `.iter()` to iterate through the elements of this `Packed`.
 #[repr(transparent)]
 pub struct Packed<'a, A, E>(list::List<'a, A>, marker::PhantomData<E>)
 where
     E: item_encoding::ItemEncoding<'a, A>;
 
+/// An iterator for a `Packed`.
 #[derive(Clone, Debug, Default)]
 pub enum Iter<'a, A, E>
 where
@@ -28,14 +33,19 @@ impl<'a, A, E> Packed<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
+    /// Creates a new, empty `Packed` with minimal memory footprint.
     pub const fn empty() -> Self {
         Self(list::List::empty(), marker::PhantomData)
     }
 
+    /// Creates a `Packed` that uses the specified slice as its storage.
+    ///
+    /// The slice must live as long as this `Packed` does.
     pub fn from_slice(slice: &'a [A]) -> Self {
         Self(list::List::from_slice(slice), marker::PhantomData)
     }
 
+    // Used internally by the runtime during decoding
     pub(crate) fn from_msg_buf(tag: u32, data: &'a [u8]) -> Self {
         Self(list::List::from_msg_buf(tag, data), marker::PhantomData)
     }

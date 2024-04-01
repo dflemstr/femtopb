@@ -1,6 +1,8 @@
+//! Definition of the core `Message` trait.
 use crate::encoding;
 use crate::error;
 
+/// A message type that can be encoded and decoded to a buffer using the protobuf wire format.
 pub trait Message<'a>: Clone {
     /// Encodes the message to a buffer pointed-to by the specified cursor.
     ///

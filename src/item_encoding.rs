@@ -1,9 +1,13 @@
+//! Item encodings for lazily-parsed types like `Repeated` and `Packed`.
+//!
+//! Most of the items in this module should be fairly self-explanatory.
 use crate::enumeration;
 use crate::message;
 use crate::runtime;
 use crate::{encoding, error};
 use core::marker;
 
+/// An item encoding for an embedded type.
 pub trait ItemEncoding<'a, A>
 where
     A: 'a,

@@ -1,9 +1,12 @@
+//! Low-level encoding utility functions and types.
 use crate::error;
 
+/// The smallest possible tag value.
 pub const MIN_TAG: u32 = 1;
+/// The largest possible tag value.
 pub const MAX_TAG: u32 = (1 << 29) - 1;
-pub const RECURSION_LIMIT: u32 = 100;
 
+/// All the possible protobuf wire types for encoding fields.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 pub enum WireType {
@@ -32,6 +35,10 @@ impl TryFrom<u64> for WireType {
     }
 }
 
+/// Encodes the provided value as a variable-length encoded integer in LEB128 variable length
+/// format.
+///
+/// The provided `cursor` buffer will be updated to point to just after the encoded integer.
 #[inline]
 pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
     use bytes::BufMut as _;
@@ -46,12 +53,17 @@ pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
     }
 }
 
+/// Decodes a variable-length encoded integer in LEB128 variable length format.
+///
+/// The provided cursor will, on success, be updated to point just past the decoded integer.
+/// On failure, the cursor buffer will not be updated, and still point to the beginning of the
+/// variable-length encoded integer.
 #[inline]
-pub fn decode_varint(buf: &mut &[u8]) -> Result<u64, error::DecodeError> {
+pub fn decode_varint(cursor: &mut &[u8]) -> Result<u64, error::DecodeError> {
     use bytes::Buf as _;
 
     let mut value: u64 = 0;
-    for (idx, byte) in buf.into_iter().copied().take(10).enumerate() {
+    for (idx, byte) in cursor.into_iter().copied().take(10).enumerate() {
         value |= u64::from(byte & 0x7F) << (idx * 7);
         if byte <= 0x7F {
             // Check for u64::MAX overflow. See [`ConsumeVarint`][1] for details.
@@ -59,7 +71,7 @@ pub fn decode_varint(buf: &mut &[u8]) -> Result<u64, error::DecodeError> {
             return if idx == 9 && byte >= 0x02 {
                 Err(error::DecodeError::InvalidVarint)
             } else {
-                buf.advance(idx + 1);
+                cursor.advance(idx + 1);
                 Ok(value)
             };
         }
@@ -123,6 +135,11 @@ pub fn check_wire_type(expected: WireType, actual: WireType) -> Result<(), error
     Ok(())
 }
 
+/// Skips a field of the given wire type and tag.
+///
+/// On success, the cursor will be updated to point past the skipped field.
+/// On failure, the cursor will be in an undefined inconsistent state, since a failure in this
+/// function means that the buffer is corrupted.
 #[inline]
 pub fn skip_field(
     wire_type: WireType,

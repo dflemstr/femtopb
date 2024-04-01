@@ -1,7 +1,10 @@
-use crate::error::DecodeError;
+//! The `Deferred` wrapper type and related types.
 use crate::{error, message};
 use core::marker;
 
+/// A `Deferred<A>` allows deferred decoding/encoding of a message of type `A`.
+///
+/// Use `Deferred::decode()` to do a deferred decode of an `A`.
 #[derive(Clone, Debug)]
 pub struct Deferred<'a, A>
 where
@@ -15,6 +18,7 @@ impl<'a, A> Deferred<'a, A>
 where
     A: message::Message<'a>,
 {
+    /// Performs deferred decoding of an `A`, returning the parsed message on success.
     pub fn decode(&self) -> Result<A, error::DecodeError> {
         A::decode(self.msg_buf)
     }
@@ -48,7 +52,7 @@ where
         }
     }
 
-    fn decode(msg_buf: &'a [u8]) -> Result<Self, DecodeError>
+    fn decode(msg_buf: &'a [u8]) -> Result<Self, error::DecodeError>
     where
         Self: Sized,
     {
