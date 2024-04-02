@@ -120,21 +120,21 @@
 //!
 //! #[derive(Clone, Debug, PartialEq, femtopb::Message)]
 //! pub struct TempReading<'a> {
-//!     // This is a terrible name for a timestamp field (which unit? time zone? etc) but I'm using
-//!     // it here for brevity.
 //!     #[femtopb(uint64, tag = 1)]
-//!     ts: u64,
+//!     id: u64,
 //!     #[femtopb(float, tag = 2)]
 //!     degrees_c: f32,
+//!     #[femtopb(float, tag = 3)]
+//!     pressure_hpa: f32,
 //!     #[femtopb(unknown_fields)]
 //!     pub unknown_fields: femtopb::UnknownFields<'a>,
 //! }
 //!
 //! fn main() {
 //!     let new_readings = &[
-//!         TempReading { ts: 1234, degrees_c: 23.0, ..Default::default() },
-//!         TempReading { ts: 1235, degrees_c: 23.2, ..Default::default() },
-//!         TempReading { ts: 1236, degrees_c: 23.4, ..Default::default() },
+//!         TempReading { id: 1234, degrees_c: 23.0, ..Default::default() },
+//!         TempReading { id: 1235, degrees_c: 23.2, ..Default::default() },
+//!         TempReading { id: 1236, degrees_c: 23.4, ..Default::default() },
 //!     ];
 //!     let event = WeatherStationEvent {
 //!         serial_id: b"mystation-abc123",
@@ -148,8 +148,8 @@
 //!     let new_event = WeatherStationEvent::decode(buf.as_slice()).unwrap();
 //!     assert_eq!(new_event.serial_id, b"mystation-abc123");
 //!     for reading in &new_event.new_readings {
-//!         let TempReading { ts, degrees_c, .. } = reading.unwrap();
-//!         println!("{ts}: {degrees_c}");
+//!         let TempReading { id, degrees_c, .. } = reading.unwrap();
+//!         println!("{id}: {degrees_c}");
 //!         // Prints:
 //!         // 1234: 23.0
 //!         // 1235: 23.2
