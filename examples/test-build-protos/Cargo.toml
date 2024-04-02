@@ -1,6 +1,6 @@
 [package]
 name = "test-build-protos"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 publish = false
 
@@ -8,8 +8,8 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.81"
-femtopb = { version = "0.1.1", path = "../.." }
+femtopb = { version = "0.1.2", path = "../.." }
 
 [build-dependencies]
 anyhow = "1.0.81"
-femtopb-build = { version = "0.1.1", path = "../../build" }
+femtopb-build = { version = "0.1.2", path = "../../build" }
