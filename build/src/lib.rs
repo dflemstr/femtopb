@@ -1,3 +1,76 @@
+//! # `femtopb-build`
+//!
+//! A code generator/protobuf compiler for the `femtopb` library.  Uses `protox` and `prost-build`
+//! under the hood, but for now only a limited subset of their full APIs are exposed.
+//!
+//! ## Usage
+//!
+//! This library is meant to be used in your `build.rs` script to generate Rust code at build time.
+//! First, add both `femtopb` and `femtopb-build` to your dependencies like this:
+//!
+//! ```toml
+//! [dependencies]
+#![doc=concat!("femtopb = \"", env!("CARGO_PKG_VERSION"), "\"")]
+//!
+//! [build-dependencies]
+#![doc=concat!("femtopb-build = \"", env!("CARGO_PKG_VERSION"), "\"")]
+//! ```
+//! An example of a valid `build.rs` file is:
+//!
+//! ```rust,ignore
+//! fn main() -> anyhow::Result<()> {
+//!     femtopb_build::compile_protos(
+//!         &["src/myapi/v1/myapi.proto", "src/myapi/v1/foo.proto"],
+//!         &["src"],
+//!     )
+//! }
+//! ```
+//!
+//! The first argument to `compile_protos` lists which proto schema files to compile,
+//! and the second argument lists include dirs, where imports from one proto file to another
+//! will get resolved.
+//!
+//! You may then include the parts of the schema that you want to use in your application. The file
+//! name of the generated file will be based on the protobuf `package` declaration (and for sanity
+//! should probably match your directory structure, too).
+//!
+//! ```rust,ignore
+//! // Include the `items` module, which is generated from items.proto.
+//! // It is important to maintain the same structure as in the proto.
+//! pub mod myapi {
+//!     pub mod v1 {
+//!         include!(concat!(env!("OUT_DIR"), "/myapi.v1.rs"));
+//!     }
+//! }
+//!
+//! use myapi::v1::Foo;
+//! // ...
+//! ```
+//!
+//! To view the generated code, the easiest way is probably to just run `cargo doc`.
+//!
+//! ## Checking in generated code
+//!
+//! If you don't want to generate the code during the build, another common approach is to generate
+//! the code once and check in the generated code in source control.  A common, but hacky, way is to
+//! add an `example` to your crate that generates the code.
+//!
+//! For example, create a file called `examples/mycrate-generate-schema.rs` containing:
+//!
+//! ```rust,ignore
+//! fn main() -> anyhow::Result<()> {
+//!     femtopb_build::compile_protos_into(
+//!         &["src/myapi/v1/myapi.proto", "src/myapi/v1/foo.proto"],
+//!         &["src"],
+//!         "src",
+//!     )
+//! }
+//! ```
+//!
+//! Here, we use the `compile_protos_into` function that lets you specify a custom output directory,
+//! and we use the `src` dir of the crate to have the schemas live next to the rest of the
+//! application code (you may of course decide to structure things differently).
+
 use std::collections;
 use std::env;
 use std::fs;
@@ -37,9 +110,8 @@ use std::path;
 ///
 /// ```rust,no_run
 /// # use std::io::Result;
-/// fn main() -> Result<()> {
-///   prost_build::compile_protos(&["src/frontend.proto", "src/backend.proto"], &["src"])?;
-///   Ok(())
+/// fn main() -> anyhow::Result<()> {
+///     femtopb_build::compile_protos(&["src/frontend.proto", "src/backend.proto"], &["src"])
 /// }
 /// ```
 ///
@@ -57,6 +129,8 @@ pub fn compile_protos(
     compile_protos_into(protos, includes, target)
 }
 
+/// Like `compile_protos`, but lets you specify the target directory explicitly, instead of relying
+/// on the convention used by cargo of using the `OUT_DIR` env var.
 pub fn compile_protos_into(
     protos: &[impl AsRef<path::Path>],
     includes: &[impl AsRef<path::Path>],
