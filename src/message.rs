@@ -9,7 +9,6 @@ pub trait Message<'a>: Clone {
     /// This method will panic if the buffer pointed to by `cursor` has insufficient capacity.
     ///
     /// Meant to be used only by `Message` implementations.
-    #[doc(hidden)]
     fn encode_raw(&self, cursor: &mut &mut [u8]);
 
     /// Returns the encoded length of the message without a length delimiter.
