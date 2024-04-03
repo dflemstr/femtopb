@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[no_panic::no_panic]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn decode_panic_free(
     buffer: &[u8],
 ) -> Result<protobuf_unittest::TestAllTypes, femtopb::error::DecodeError> {
