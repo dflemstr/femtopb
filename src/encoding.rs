@@ -1,4 +1,5 @@
 //! Low-level encoding utility functions and types.
+use core::mem;
 use crate::error;
 
 /// The smallest possible tag value.
@@ -42,13 +43,15 @@ impl TryFrom<u64> for WireType {
 #[inline]
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
-    use bytes::BufMut as _;
     loop {
+        let buf = mem::replace(cursor, &mut []);
+        let (byte, rest) = buf.split_first_mut().unwrap();
+        *cursor = rest;
         if value < 0x80 {
-            cursor.put_u8(value as u8);
+            *byte = value as u8;
             break;
         } else {
-            cursor.put_u8(((value & 0x7F) | 0x80) as u8);
+            *byte = ((value & 0x7F) | 0x80) as u8;
             value >>= 7;
         }
     }

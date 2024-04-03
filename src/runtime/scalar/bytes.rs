@@ -1,4 +1,5 @@
 use crate::{encoding, error};
+use core::mem;
 
 // Also used by `crate::item_encoding`
 pub(crate) const WIRE_TYPE: encoding::WireType = encoding::WireType::LengthDelimited;
@@ -29,8 +30,13 @@ fn encode_key_value(tag: u32, value: &[u8], cursor: &mut &mut [u8]) {
 
 #[inline]
 fn encode_single_value(value: &[u8], cursor: &mut &mut [u8]) {
-    encoding::encode_varint(value.len() as u64, cursor);
-    ::bytes::BufMut::put_slice(cursor, value);
+    let len = value.len();
+    encoding::encode_varint(len as u64, cursor);
+
+    let buf = mem::replace(cursor, &mut []);
+    let (bytes, rest) = buf.split_at_mut(len);
+    *cursor = rest;
+    bytes.copy_from_slice(value);
 }
 
 #[inline]
@@ -63,12 +69,11 @@ pub fn decode_optional<'a>(
 pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a [u8], error::DecodeError> {
-    use bytes::Buf as _;
 
     let len = encoding::decode_varint(cursor)? as usize;
-    if cursor.remaining() >= len {
-        let bytes = &cursor[..len];
-        cursor.advance(len);
+    if cursor.len() >= len {
+        let (bytes, rest) = cursor.split_at(len);
+        *cursor = rest;
         Ok(bytes)
     } else {
         Err(error::DecodeError::BufferUnderflow)

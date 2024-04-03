@@ -24,11 +24,10 @@ pub trait Message<'a>: Clone {
     ///
     /// An error will be returned if the buffer does not have sufficient capacity.
     fn encode(&self, cursor: &mut &mut [u8]) -> Result<(), error::EncodeError> {
-        use bytes::BufMut as _;
 
         let required = self.encoded_len();
-        let remaining = cursor.remaining_mut();
-        if required > cursor.remaining_mut() {
+        let remaining = cursor.len();
+        if required > remaining {
             return Err(error::EncodeError::new(required, remaining));
         }
 
@@ -45,11 +44,9 @@ pub trait Message<'a>: Clone {
     ///
     /// An error will be returned if the buffer does not have sufficient capacity.
     fn encode_length_delimited(&self, cursor: &mut &mut [u8]) -> Result<(), error::EncodeError> {
-        use bytes::BufMut as _;
-
         let len = self.encoded_len();
         let required = len + encoding::encoded_len_varint(len as u64);
-        let remaining = cursor.remaining_mut();
+        let remaining = cursor.len();
         if required > remaining {
             return Err(error::EncodeError::new(required, remaining));
         }
@@ -77,12 +74,11 @@ pub trait Message<'a>: Clone {
     where
         Self: Sized,
     {
-        use bytes::Buf as _;
-
         let len = encoding::decode_varint(buf)?;
         let len = usize::try_from(len).map_err(|_| error::DecodeError::VarintTooLarge(len))?;
-        let message = Self::decode(&buf[..len])?;
-        buf.advance(len);
+        let (start, rest) = buf.split_at(len);
+        let message = Self::decode(&start)?;
+        *buf = rest;
         Ok(message)
     }
 

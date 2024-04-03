@@ -125,12 +125,11 @@ pub fn decode_single_value<'a, M>(cursor: &mut &'a [u8]) -> Result<M, error::Dec
 where
     M: message::Message<'a>,
 {
-    use bytes::Buf as _;
     let len = encoding::decode_varint(cursor)? as usize;
-    if cursor.remaining() >= len {
-        let bytes = &cursor[..len];
+    if cursor.len() >= len {
+        let (bytes, rest) = cursor.split_at(len);
         let msg = M::decode(bytes)?;
-        cursor.advance(len);
+        *cursor = rest;
         Ok(msg)
     } else {
         Err(error::DecodeError::BufferUnderflow)

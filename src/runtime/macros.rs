@@ -244,6 +244,7 @@ macro_rules! fixed_width {
      $get:ident) => {
         use $crate::encoding;
         use $crate::error;
+        use $crate::bits;
 
         // Also used by `crate::item_encoding`
         pub(crate) const WIRE_TYPE: encoding::WireType = $wire_type;
@@ -298,7 +299,7 @@ macro_rules! fixed_width {
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         fn encode_single_value(value: $ty, cursor: &mut &mut [u8]) {
-            ::bytes::BufMut::$put(cursor, value);
+            bits::$put(cursor, value);
         }
 
         #[inline]
@@ -376,8 +377,8 @@ macro_rules! fixed_width {
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub(crate) fn decode_single_value(cursor: &mut &[u8]) -> Result<$ty, error::DecodeError> {
-            if ::bytes::Buf::remaining(cursor) >= $width {
-                Ok(::bytes::Buf::$get(cursor))
+            if cursor.len() >= $width {
+                Ok(bits::$get(cursor))
             } else {
                 Err(error::DecodeError::BufferUnderflow)
             }

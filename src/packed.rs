@@ -222,7 +222,6 @@ where
     A: 'a,
     E: item_encoding::ItemEncoding<'a, A>,
 {
-    use bytes::Buf as _;
     if packed_chunk.is_empty() {
         // Need to "fetch" a new chunk; try to find next occurrence of our tag.
         // By taking a mut reference to msg_buf.data, we ensure that the original slice gradually
@@ -245,8 +244,9 @@ where
                         // slice is stored (most likely a list::Iter::MessageBuffer) which means
                         // that the remainder of this chunk will be used on the next call to
                         // Iter::next()
-                        *packed_chunk = &cursor[..len];
-                        cursor.advance(len);
+                        let (chunk, rest) = cursor.split_at(len);
+                        *packed_chunk = chunk;
+                        *cursor = rest;
                         return Ok(Some(E::decode_single_value(packed_chunk)?));
                     }
                     // fall through until next loop iteration here; we don't need to

@@ -223,6 +223,7 @@
 //! `prost-build` was re-used in the creation of `femtopb-build`.
 
 mod list;
+mod bits;
 
 pub mod deferred;
 pub mod encoding;
