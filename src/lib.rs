@@ -222,8 +222,8 @@
 //! `prost` ended up being significantly different, so mostly only the build infrastructure of
 //! `prost-build` was re-used in the creation of `femtopb-build`.
 
-mod list;
 mod bits;
+mod list;
 
 pub mod deferred;
 pub mod encoding;

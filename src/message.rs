@@ -24,7 +24,6 @@ pub trait Message<'a>: Clone {
     ///
     /// An error will be returned if the buffer does not have sufficient capacity.
     fn encode(&self, cursor: &mut &mut [u8]) -> Result<(), error::EncodeError> {
-
         let required = self.encoded_len();
         let remaining = cursor.len();
         if required > remaining {

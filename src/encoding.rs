@@ -1,6 +1,6 @@
 //! Low-level encoding utility functions and types.
-use core::mem;
 use crate::error;
+use core::mem;
 
 /// The smallest possible tag value.
 pub const MIN_TAG: u32 = 1;

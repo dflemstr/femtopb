@@ -69,7 +69,6 @@ pub fn decode_optional<'a>(
 pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a [u8], error::DecodeError> {
-
     let len = encoding::decode_varint(cursor)? as usize;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
