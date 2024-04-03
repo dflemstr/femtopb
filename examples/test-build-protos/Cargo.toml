@@ -1,6 +1,6 @@
 [package]
 name = "test-build-protos"
-version = "0.1.4"
+version = "0.2.0"
 edition = "2021"
 publish = false
 
@@ -8,12 +8,12 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.81"
-femtopb = { version = "0.1.4", path = "../.." }
+femtopb = { version = "0.2.0", path = "../.." }
 no-panic = "0.1.29"
 
 [build-dependencies]
 anyhow = "1.0.81"
-femtopb-build = { version = "0.1.4", path = "../../build" }
+femtopb-build = { version = "0.2.0", path = "../../build" }
 
 [features]
 assert-no-panic = ["femtopb/assert-no-panic"]
