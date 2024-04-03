@@ -183,6 +183,7 @@ where
 {
     type Item = Result<A, error::DecodeError>;
 
+    #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Iter::Empty => None,
@@ -212,6 +213,7 @@ where
     }
 }
 
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn next_item<'a, A, E>(
     msg_buf: &mut list::MessageBuffer<'a>,
     packed_chunk: &mut &'a [u8],

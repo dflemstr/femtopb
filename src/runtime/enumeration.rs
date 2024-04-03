@@ -5,6 +5,7 @@ use crate::packed;
 use crate::repeated;
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode<E>(
     tag: u32,
     value: enumeration::EnumValue<E>,
@@ -21,6 +22,7 @@ pub fn encode<E>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_optional<E>(
     tag: u32,
     value: Option<enumeration::EnumValue<E>>,
@@ -35,6 +37,7 @@ pub fn encode_optional<E>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_repeated<E>(
     tag: u32,
     values: repeated::Repeated<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
@@ -50,6 +53,7 @@ pub fn encode_repeated<E>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_packed<E>(
     tag: u32,
     values: packed::Packed<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
@@ -74,6 +78,7 @@ pub fn encode_packed<E>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn encode_key_value<E>(tag: u32, value: enumeration::EnumValue<E>, cursor: &mut &mut [u8])
 where
     E: enumeration::Enumeration,
@@ -83,6 +88,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn encode_single_value<E>(value: enumeration::EnumValue<E>, cursor: &mut &mut [u8])
 where
     E: enumeration::Enumeration,
@@ -91,6 +97,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len<E>(tag: u32, value: enumeration::EnumValue<E>, default: Option<E>) -> usize
 where
     E: enumeration::Enumeration,
@@ -105,6 +112,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_optional<E>(
     tag: u32,
     value: Option<enumeration::EnumValue<E>>,
@@ -121,6 +129,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_repeated<E>(
     tag: u32,
     values: repeated::Repeated<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
@@ -139,6 +148,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_packed<E>(
     tag: u32,
     values: packed::Packed<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
@@ -161,6 +171,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode<'a, E>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -177,6 +188,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_optional<'a, E>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -193,6 +205,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub(crate) fn decode_single_value<E>(
     remaining: &mut &[u8],
 ) -> Result<enumeration::EnumValue<E>, error::DecodeError>
@@ -202,6 +215,8 @@ where
     Ok(E::decode(encoding::decode_varint(remaining)? as i32))
 }
 
+#[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_repeated<'a, E>(
     tag: u32,
     wire_type: encoding::WireType,
@@ -219,6 +234,8 @@ where
     Ok(())
 }
 
+#[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_packed<'a, E>(
     tag: u32,
     _wire_type: encoding::WireType,
@@ -236,6 +253,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear<E>(value: &mut enumeration::EnumValue<E>)
 where
     E: enumeration::Enumeration,
@@ -244,6 +262,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear_optional<E>(value: &mut Option<enumeration::EnumValue<E>>)
 where
     E: enumeration::Enumeration,
@@ -252,6 +271,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear_repeated<E>(
     value: &mut repeated::Repeated<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
 ) where
@@ -261,6 +281,7 @@ pub fn clear_repeated<E>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear_packed<E>(
     value: &mut packed::Packed<enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
 ) where

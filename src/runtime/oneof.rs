@@ -1,6 +1,7 @@
 use crate::{encoding, error, oneof};
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode<'a, O>(value: &Option<O>, cursor: &mut &mut [u8])
 where
     O: oneof::Oneof<'a>,
@@ -11,6 +12,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len<'a, O>(value: &Option<O>) -> usize
 where
     O: oneof::Oneof<'a>,
@@ -23,6 +25,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode<'a, O>(
     tag: u32,
     wire_type: encoding::WireType,
@@ -38,6 +41,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear<'a, O>(value: &mut Option<O>)
 where
     O: oneof::Oneof<'a>,

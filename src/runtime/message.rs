@@ -3,6 +3,7 @@ use crate::{encoding, error};
 use crate::{item_encoding, message};
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode<'a, M>(tag: u32, value: &M, cursor: &mut &mut [u8])
 where
     M: message::Message<'a>,
@@ -13,6 +14,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_optional<'a, M>(tag: u32, value: &Option<M>, cursor: &mut &mut [u8])
 where
     M: message::Message<'a>,
@@ -23,6 +25,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_repeated<'a, M>(
     tag: u32,
     values: &repeated::Repeated<'a, M, item_encoding::Message<'a, M>>,
@@ -38,6 +41,7 @@ pub fn encode_repeated<'a, M>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len<'a, M>(tag: u32, value: &M) -> usize
 where
     M: message::Message<'a>,
@@ -47,6 +51,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_optional<'a, M>(tag: u32, value: &Option<M>) -> usize
 where
     M: message::Message<'a>,
@@ -59,6 +64,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_repeated<'a, M>(
     tag: u32,
     values: &repeated::Repeated<'a, M, item_encoding::Message<'a, M>>,
@@ -80,6 +86,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode<'a, M>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -96,6 +103,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_optional<'a, M>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -112,6 +120,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_single_value<'a, M>(cursor: &mut &'a [u8]) -> Result<M, error::DecodeError>
 where
     M: message::Message<'a>,
@@ -129,6 +138,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_repeated<'a, M>(
     tag: u32,
     wire_type: encoding::WireType,
@@ -147,6 +157,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn clear<'a, M>(_tag: u32, field: &mut M)
 where
     M: message::Message<'a>,

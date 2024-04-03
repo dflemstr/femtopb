@@ -40,6 +40,7 @@ impl TryFrom<u64> for WireType {
 ///
 /// The provided `cursor` buffer will be updated to point to just after the encoded integer.
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
     use bytes::BufMut as _;
     loop {
@@ -58,33 +59,149 @@ pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
 /// The provided cursor will, on success, be updated to point just past the decoded integer.
 /// On failure, the cursor buffer will not be updated, and still point to the beginning of the
 /// variable-length encoded integer.
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 #[inline]
 pub fn decode_varint(cursor: &mut &[u8]) -> Result<u64, error::DecodeError> {
-    use bytes::Buf as _;
+    // This function has been unrolled manually to not produce any panic branches no matter which
+    // optimization level is used (primary objective), while still performing really well with
+    // optimizations enabled (secondary objective).  The performance side to this is probably
+    // Premature Optimization®: The Root of All Evil™, but having the function be panic-free is
+    // more useful in practice.
 
-    let mut value: u64 = 0;
-    for (idx, byte) in cursor.into_iter().copied().take(10).enumerate() {
-        value |= u64::from(byte & 0x7F) << (idx * 7);
-        if byte <= 0x7F {
-            // Check for u64::MAX overflow. See [`ConsumeVarint`][1] for details.
-            // [1]: https://github.com/protocolbuffers/protobuf-go/blob/v1.27.1/encoding/protowire/wire.go#L358
-            return if idx == 9 && byte >= 0x02 {
-                Err(error::DecodeError::InvalidVarint)
-            } else {
-                cursor.advance(idx + 1);
-                Ok(value)
-            };
+    // Some notes as to what has made a difference during testing (looking at disassembly both for
+    // this function in isolation and in the inlined context of decoding messages of various
+    // sizes and types):
+    //
+    // * Unrolling the loop for each of the up to 10 bytes prevents a panic check for shift-left
+    //   operations (e.g. `byte << (i * 7)` requires checking that `i * 7 < 64`, and panic if not).
+    //   This sometimes gets optimized away, but it's nice to have the code be panic-free even
+    //   with no optimizations enabled.  The unrolled version lets us use a constant for the
+    //   shift-left operation (e.g. `byte << 21`).
+    // * Using the `take_first` function has no branches which lead to panics, unlike unchecked
+    //   array accesses like `cursor[i]` or the `bytes::Buf` methods.  When optimizations are
+    //   enabled, the function gets inlined and the slice indirections get eliminated.
+    // * Marking the error branches with `#[cold]` made the generated code generate "jump"
+    //   instructions for the error case, and fallthrough code for the happy path.  This likely
+    //   makes the BPU on modern CPUs happy, but what do I know...
+    // * Handling the last byte (`cursor[9]`) as a special-case where we only want to look at a
+    //   single bit makes the compiler less confused about the possible code paths.  Without the
+    //   special treatment, the compiler generates code that checks for the "is only one bit set?"
+    //   case for every loop.  This might be faster in some cases for what I know, but with the
+    //   unrolled version, the generated code seems to be a lot cleaner, with one distinct return
+    //   path block for byte 0, one shared block for bytes 1..8, and a distinct one for byte 9.
+    //
+    // Things I haven't tried yet:
+    //
+    // * Processing bytes in larger chunks, e.g. u32 or u64, maybe using Duff's Device-style code.
+    //   This is maybe a bit hard to accomplish with safe rust, and has alignment problems and
+    //   such...
+
+    #[inline]
+    #[cold]
+    fn buffer_underflow<A>() -> Result<A, error::DecodeError> {
+        // Utility function to be able to mark this code path as cold (aka unlikely)
+        Err(error::DecodeError::BufferUnderflow)
+    }
+
+    #[inline]
+    #[cold]
+    fn invalid_varint<A>() -> Result<A, error::DecodeError> {
+        // Utility function to be able to mark this code path as cold (aka unlikely)
+        Err(error::DecodeError::InvalidVarint)
+    }
+
+    #[inline]
+    fn take_first(slice: &mut &[u8]) -> Result<u8, error::DecodeError> {
+        if let Some((byte, rest)) = (*slice).split_first() {
+            *slice = rest;
+            Ok(*byte)
+        } else {
+            buffer_underflow()
         }
     }
 
-    // We have overrun the maximum size of a varint (10 bytes) or the final byte caused an overflow.
-    // Assume the data is corrupt.
-    Err(error::DecodeError::InvalidVarint)
+    let mut value: u64;
+
+    // byte 0
+    let byte = take_first(cursor)?;
+    value = u64::from(byte & 0b0111_1111);
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 1
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 7;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 2
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 14;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 3
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 21;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 4
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 28;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 5
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 35;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 6
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 42;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 7
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 49;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 8
+    let byte = take_first(cursor)?;
+    value |= u64::from(byte & 0b0111_1111) << 56;
+    if byte & 0b1000_0000 == 0 {
+        return Ok(value);
+    }
+
+    // byte 9
+    let byte = take_first(cursor)?;
+    // Here, we only accept a single bit, since we have already seen 63 bits up until this point,
+    // and the u64 type obviously only holds 64 bits.
+    value |= u64::from(byte & 0b0000_0001) << 63;
+    if byte & 0b1111_1110 == 0 {
+        return Ok(value);
+    }
+
+    // Last byte was too large or had continuation bit set
+    invalid_varint()
 }
 
 /// Returns the encoded length of the value in LEB128 variable length format.
 /// The returned value will be between 1 and 10, inclusive.
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encoded_len_varint(value: u64) -> usize {
     // Based on [VarintSize64][1].
     // [1]: https://github.com/google/protobuf/blob/3.3.x/src/google/protobuf/io/coded_stream.h#L1301-L1309
@@ -94,6 +211,7 @@ pub fn encoded_len_varint(value: u64) -> usize {
 /// Encodes a Protobuf field key, which consists of a wire type designator and
 /// the field tag.
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_key(tag: u32, wire_type: WireType, cursor: &mut &mut [u8]) {
     debug_assert!((MIN_TAG..=MAX_TAG).contains(&tag));
     let key = (tag << 3) | wire_type as u32;
@@ -103,6 +221,7 @@ pub fn encode_key(tag: u32, wire_type: WireType, cursor: &mut &mut [u8]) {
 /// Decodes a Protobuf field key, which consists of a wire type designator and
 /// the field tag.
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_key(buf: &mut &[u8]) -> Result<(u32, WireType), error::DecodeError> {
     let key = decode_varint(buf)?;
     if key > u64::from(u32::MAX) {
@@ -121,6 +240,7 @@ pub fn decode_key(buf: &mut &[u8]) -> Result<(u32, WireType), error::DecodeError
 /// Returns the width of an encoded Protobuf field key with the given tag.
 /// The returned width will be between 1 and 5 bytes (inclusive).
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn key_len(tag: u32) -> usize {
     encoded_len_varint(u64::from(tag << 3))
 }
@@ -128,11 +248,16 @@ pub fn key_len(tag: u32) -> usize {
 /// Checks that the expected wire type matches the actual wire type,
 /// or returns an error result.
 #[inline]
-pub fn check_wire_type(expected: WireType, actual: WireType) -> Result<(), error::DecodeError> {
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
+pub(crate) fn check_wire_type(
+    expected: WireType,
+    actual: WireType,
+) -> Result<(), error::DecodeError> {
     if expected != actual {
-        return Err(error::DecodeError::UnexpectedWireTypeValue { expected, actual });
+        Err(error::DecodeError::UnexpectedWireTypeValue { expected, actual })
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 /// Skips a field of the given wire type and tag.
@@ -141,39 +266,63 @@ pub fn check_wire_type(expected: WireType, actual: WireType) -> Result<(), error
 /// On failure, the cursor will be in an undefined inconsistent state, since a failure in this
 /// function means that the buffer is corrupted.
 #[inline]
+// This function can not be proven to be panic-free in isolation, likely because of the recursion.
+// See https://github.com/dtolnay/no-panic/issues/56
+// However, in the context of surrounding code, this panic false negative goes away
+// #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn skip_field(
     wire_type: WireType,
     tag: u32,
     cursor: &mut &[u8],
 ) -> Result<(), error::DecodeError> {
-    use bytes::Buf as _;
-
     let len = match wire_type {
-        WireType::Varint => decode_varint(cursor).map(|_| 0)?,
+        WireType::Varint => {
+            decode_varint(cursor)?;
+            0 // decode_varint has already advanced the cursor slice
+        }
         WireType::ThirtyTwoBit => 4,
         WireType::SixtyFourBit => 8,
-        WireType::LengthDelimited => decode_varint(cursor)?,
+        WireType::LengthDelimited => {
+            // decode_varint advances the cursor; now skip more bytes corresponding to
+            // the returned value
+            decode_varint(cursor)? as usize
+        }
         WireType::StartGroup => loop {
             let (inner_tag, inner_wire_type) = decode_key(cursor)?;
             match inner_wire_type {
                 WireType::EndGroup => {
-                    if inner_tag != tag {
+                    if inner_tag == tag {
+                        break 0;
+                    } else {
                         return Err(error::DecodeError::UnexpectedEndGroupTag);
                     }
-                    break 0;
                 }
-                _ => skip_field(inner_wire_type, inner_tag, cursor)?,
+                _ => skip_field_in_group(inner_wire_type, inner_tag, cursor)?,
             }
         },
         WireType::EndGroup => return Err(error::DecodeError::UnexpectedEndGroupTag),
     };
 
-    if len > cursor.remaining() as u64 {
-        return Err(error::DecodeError::BufferUnderflow);
+    if let Some(rest) = (*cursor).get(len..) {
+        *cursor = rest;
+        Ok(())
+    } else {
+        Err(error::DecodeError::BufferUnderflow)
     }
+}
 
-    cursor.advance(len as usize);
-    Ok(())
+#[inline(never)]
+#[cold]
+// This function can not be proven to be panic-free in isolation, likely because of the recursion.
+// See https://github.com/dtolnay/no-panic/issues/56
+// However, in the context of surrounding code, this panic false negative goes away
+// #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
+fn skip_field_in_group(
+    wire_type: WireType,
+    tag: u32,
+    cursor: &mut &[u8],
+) -> Result<(), error::DecodeError> {
+    skip_field(wire_type, tag, cursor)
 }
 
 #[cfg(test)]

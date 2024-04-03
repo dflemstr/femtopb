@@ -9,7 +9,11 @@ publish = false
 [dependencies]
 anyhow = "1.0.81"
 femtopb = { version = "0.1.2", path = "../.." }
+no-panic = "0.1.29"
 
 [build-dependencies]
 anyhow = "1.0.81"
 femtopb-build = { version = "0.1.2", path = "../../build" }
+
+[features]
+assert-no-panic = ["femtopb/assert-no-panic"]

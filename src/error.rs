@@ -9,7 +9,8 @@ use crate::encoding;
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum DecodeError {
-    /// We were unable to decode a varint; the buffer was corrupted.
+    /// We were unable to decode a varint, because the last byte overflowed a 64-bit integer; the
+    /// buffer is likely corrupt.
     InvalidVarint,
     /// The decoded varint was larger than expected; the too-large value is enclosed.
     VarintTooLarge(u64),

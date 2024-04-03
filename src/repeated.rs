@@ -1,5 +1,4 @@
 //! `Repeated` scalar or composite values.
-use crate::list::MessageBuffer;
 use crate::{encoding, list};
 use crate::{error, item_encoding};
 use core::marker;
@@ -22,7 +21,7 @@ where
     #[default]
     Empty,
     MessageBuffer {
-        msg_buf: MessageBuffer<'a>,
+        msg_buf: list::MessageBuffer<'a>,
         phantom: marker::PhantomData<E>,
     },
     Slice(slice::Iter<'a, A>),
@@ -173,6 +172,7 @@ where
 {
     type Item = Result<A, error::DecodeError>;
 
+    #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Iter::Empty => None,
@@ -201,6 +201,7 @@ where
     }
 }
 
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn next_item<'a, A, E>(
     msg_buf: &mut list::MessageBuffer<'a>,
 ) -> Result<Option<A>, error::DecodeError>

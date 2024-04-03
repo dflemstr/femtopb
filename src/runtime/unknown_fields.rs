@@ -1,5 +1,8 @@
 use crate::{encoding, error, unknown_fields};
 
+#[inline]
+#[cold]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode<'a>(
     known_tags: &'static [u32],
     _wire_type: encoding::WireType,

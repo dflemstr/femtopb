@@ -2,6 +2,7 @@
 macro_rules! encode_repeated {
     ($lt:lifetime, $ty:ty, $item_encoding:ty) => {
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode_repeated<$lt>(
             tag: u32,
             values: $crate::repeated::Repeated<$lt, $ty, $item_encoding>,
@@ -22,16 +23,19 @@ pub(crate) use encode_repeated;
 macro_rules! trivial_clear {
     ($lt:lifetime, $ty:ty, $default_ty:ty, $item_encoding:ty) => {
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn clear<$lt>(value: &mut $ty, default: $default_ty) {
             *value = default;
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn clear_optional<$lt>(value: &mut Option<$ty>, default: Option<$default_ty>) {
             *value = default;
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn clear_repeated<$lt>(
             value: &mut $crate::repeated::Repeated<$lt, $ty, $item_encoding>,
         ) {
@@ -39,6 +43,7 @@ macro_rules! trivial_clear {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn clear_packed<$lt>(value: &mut $crate::packed::Packed<$lt, $ty, $item_encoding>) {
             *value = $crate::packed::Packed::empty();
         }
@@ -53,6 +58,7 @@ macro_rules! decode_packed_repeated {
         use $crate::repeated;
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_repeated<$lt>(
             tag: u32,
             wire_type: encoding::WireType,
@@ -68,6 +74,7 @@ macro_rules! decode_packed_repeated {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_packed<$lt>(
             tag: u32,
             wire_type: encoding::WireType,
@@ -103,6 +110,7 @@ macro_rules! varint {
         pub(crate) const WIRE_TYPE: encoding::WireType = encoding::WireType::Varint;
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode(tag: u32, value: $ty, default: $ty, cursor: &mut &mut [u8]) {
             if value != default {
                 encode_key_value(tag, value, cursor);
@@ -110,6 +118,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode_optional(tag: u32, value: Option<$ty>, default: $ty, cursor: &mut &mut [u8]) {
             if let Some(value) = value {
                 if value != default {
@@ -121,6 +130,7 @@ macro_rules! varint {
         $crate::runtime::macros::encode_repeated!($lt, $ty, $item_encoding);
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode_packed<$lt>(tag: u32, values: $crate::packed::Packed<$lt, $ty, $item_encoding>, cursor: &mut &mut [u8]) {
             if !values.is_empty() {
                 encoding::encode_key(tag, encoding::WireType::LengthDelimited, cursor);
@@ -140,17 +150,20 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         fn encode_key_value(tag: u32, value: $ty, cursor: &mut &mut [u8]) {
             encoding::encode_key(tag, WIRE_TYPE, cursor);
             encode_single_value(value, cursor);
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         fn encode_single_value($to_uint64_value: $ty, cursor: &mut &mut [u8]) {
             encoding::encode_varint($to_uint64, cursor);
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len(tag: u32, $to_uint64_value: $ty, default: $ty) -> usize {
             if $to_uint64_value == default {
                 0
@@ -160,6 +173,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_optional(tag: u32, v: Option<$ty>, default: $ty) -> usize {
             if let Some(v) = v {
                 encoded_len(tag, v, default)
@@ -169,6 +183,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_repeated<$lt>(tag: u32, values: $crate::repeated::Repeated<$lt, $ty, $item_encoding>) -> usize {
             encoding::key_len(tag) * values.len() + values.iter().map(|r| {
                 r.map(|$to_uint64_value| encoding::encoded_len_varint($to_uint64)).unwrap_or(0)
@@ -176,6 +191,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_packed<$lt>(tag: u32, values: $crate::packed::Packed<$lt, $ty, $item_encoding>) -> usize {
             if values.is_empty() {
                 0
@@ -188,6 +204,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], cursor: &mut &[u8], field: &mut $ty) -> Result<(), error::DecodeError> {
             encoding::check_wire_type(WIRE_TYPE, wire_type)?;
             *field = decode_single_value(cursor)?;
@@ -195,6 +212,7 @@ macro_rules! varint {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_optional(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], cursor: &mut &[u8], field: &mut Option<$ty>) -> Result<(), error::DecodeError> {
             encoding::check_wire_type(WIRE_TYPE, wire_type)?;
             *field = Some(decode_single_value(cursor)?);
@@ -203,6 +221,7 @@ macro_rules! varint {
 
         // Also used by `crate::item_encoding`
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub(crate) fn decode_single_value(cursor: &mut &[u8]) -> Result<$ty, error::DecodeError> {
             let $from_uint64_value = encoding::decode_varint(cursor)?;
             Ok($from_uint64)
@@ -230,6 +249,7 @@ macro_rules! fixed_width {
         pub(crate) const WIRE_TYPE: encoding::WireType = $wire_type;
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode(tag: u32, value: $ty, default: $ty, cursor: &mut &mut [u8]) {
             if value != default {
                 encode_key_value(tag, value, cursor);
@@ -237,6 +257,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode_optional(tag: u32, value: Option<$ty>, default: $ty, cursor: &mut &mut [u8]) {
             if let Some(value) = value {
                 if value != default {
@@ -248,6 +269,7 @@ macro_rules! fixed_width {
         $crate::runtime::macros::encode_repeated!($lt, $ty, $item_encoding);
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encode_packed(
             tag: u32,
             values: $crate::packed::Packed<$ty, $item_encoding>,
@@ -267,17 +289,20 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         fn encode_key_value(tag: u32, value: $ty, cursor: &mut &mut [u8]) {
             encoding::encode_key(tag, WIRE_TYPE, cursor);
             encode_single_value(value, cursor);
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         fn encode_single_value(value: $ty, cursor: &mut &mut [u8]) {
             ::bytes::BufMut::$put(cursor, value);
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len(tag: u32, value: $ty, default: $ty) -> usize {
             if value == default {
                 0
@@ -287,6 +312,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_optional(tag: u32, v: Option<$ty>, default: $ty) -> usize {
             if let Some(v) = v {
                 encoded_len(tag, v, default)
@@ -296,6 +322,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_repeated(
             tag: u32,
             values: $crate::repeated::Repeated<$ty, $item_encoding>,
@@ -304,6 +331,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_packed(
             tag: u32,
             values: $crate::packed::Packed<$ty, $item_encoding>,
@@ -317,6 +345,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode<$lt>(
             _tag: u32,
             wire_type: encoding::WireType,
@@ -330,6 +359,7 @@ macro_rules! fixed_width {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_optional<$lt>(
             _tag: u32,
             wire_type: encoding::WireType,
@@ -344,6 +374,7 @@ macro_rules! fixed_width {
 
         // Also used by `crate::item_encoding`
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub(crate) fn decode_single_value(cursor: &mut &[u8]) -> Result<$ty, error::DecodeError> {
             if ::bytes::Buf::remaining(cursor) >= $width {
                 Ok(::bytes::Buf::$get(cursor))
@@ -364,6 +395,7 @@ macro_rules! length_delimited {
         $crate::runtime::macros::encode_repeated!($lt, $ty, $item_encoding);
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len<$lt>(tag: u32, value: $ty, default: $ty) -> usize {
             use $crate::encoding;
             if value == default {
@@ -376,6 +408,7 @@ macro_rules! length_delimited {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_optional<$lt>(tag: u32, value: Option<$ty>, default: $ty) -> usize {
             if let Some(v) = value {
                 encoded_len(tag, v, default)
@@ -385,6 +418,7 @@ macro_rules! length_delimited {
         }
 
         #[inline]
+        #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_repeated<$lt>(
             tag: u32,
             values: $crate::repeated::Repeated<$lt, $ty, $item_encoding>,

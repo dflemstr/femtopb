@@ -14,11 +14,26 @@ license = "Apache-2.0"
 [dependencies]
 bytes = { version = "1.5.0", default-features = false }
 femtopb-derive = { path = "derive", version = "0.1.2" }
+no-panic = { version = "0.1.29", optional = true }
 
 [dev-dependencies]
 proptest = "1.4.0"
 proptest-derive = "0.4.0"
 prost = "0.12.3"
+
+[features]
+# Enable link-time assertions ensuring that core femtopb functions can't possibly panic.
+# It is recommended to only enable this feature to perform a "test build" (but still using the "release" profile/with
+# optimizations turned on) as enabling it for release builds might impact code generation negatively.
+# Useful in embedded contexts where you want to write ultra-reliable code that can't fail unexpectedly, want to minimize
+# code size without having to resort to `panic = "abort"`, or want to avoid trapping into the panic handler for other
+# reasons.
+assert-no-panic = ["dep:no-panic"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
 
 [workspace]
 members = ["build", "examples/*", "derive"]
