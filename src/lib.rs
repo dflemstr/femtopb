@@ -1,8 +1,9 @@
 #![cfg_attr(not(test), no_std)]
 //! # `femtopb`
 //!
-//! A tiny footprint, `#[no_std]`, no-`alloc` Protobuf serialization library.  This allows you to
-//! communicate using Protobuf on constrained platforms, like bare-metal MCUs with very limited RAM.
+//! A tiny footprint, `#[no_std]`, no-`alloc`, no-panic Protobuf serialization library.  This allows
+//! you to communicate using Protobuf on constrained platforms, like bare-metal MCUs with very
+//! limited RAM.
 //!
 //! Yes, you heard it right: this library lets you serialize and deserialize Protobuf messages
 //! without any dynamic memory/heap allocation.
@@ -10,6 +11,11 @@
 //! The library takes care of using simple types with limited use of generics when possible, to
 //! avoid monomorphization code size explosion.  The runtime also consists of many tiny functions
 //! so that the ones that aren't used can get optimized away.
+//!
+//! During testing of this crate, checks are made to ensure that `femtopb` code cannot panic.  If
+//! you want to leverage the no-panic checks yourself to debug your own project, enable the
+//! `assert-no-panic` crate feature.  It is not necessarily a good idea to enable this feature for
+//! your release code, as enabling this feature might change the generated code slightly.
 //!
 //! ## Defining message types
 //!
