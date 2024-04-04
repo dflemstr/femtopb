@@ -4,8 +4,10 @@ fn main() -> anyhow::Result<()> {
     let target = concat!(env!("CARGO_MANIFEST_DIR"), "/src/generated");
     fs::create_dir_all(target)?;
 
-    let mut config =femtopb_build::Config::new(target);
-        config.protos(&[concat!(env!("CARGO_MANIFEST_DIR"),
+    let mut config = femtopb_build::Config::new(target);
+    config
+        .protos(&[concat!(
+            env!("CARGO_MANIFEST_DIR"),
             "/protos/google/protobuf/unittest.proto"
         )])
         .includes(&[concat!(env!("CARGO_MANIFEST_DIR"), "/protos")]);

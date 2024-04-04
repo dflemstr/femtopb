@@ -136,7 +136,10 @@ pub fn compile_protos_into(
     includes: &[impl AsRef<path::Path>],
     target: impl AsRef<path::Path>,
 ) -> anyhow::Result<()> {
-    Config::new(target).protos(protos).includes(includes).compile()
+    Config::new(target)
+        .protos(protos)
+        .includes(includes)
+        .compile()
 }
 
 pub struct Config {
@@ -159,7 +162,12 @@ struct FieldMetadata {
 impl Config {
     pub fn new(target: impl AsRef<path::Path>) -> Self {
         let target = target.as_ref().to_owned();
-        Self { protos: Vec::new(), includes: Vec::new(), target, derive_defmt: false }
+        Self {
+            protos: Vec::new(),
+            includes: Vec::new(),
+            target,
+            derive_defmt: false,
+        }
     }
 
     pub fn protos(&mut self, protos: &[impl AsRef<path::Path>]) -> &mut Self {
@@ -198,9 +206,7 @@ impl Config {
             .collect::<collections::HashMap<prost_build::Module, String>>();
 
         let mut config = prost_build::Config::new();
-            config.format(false)
-            .bytes(&["."])
-            .prost_path("::femtopb");
+        config.format(false).bytes(&["."]).prost_path("::femtopb");
 
         if self.derive_defmt {
             config.message_attribute(".", r#"#[derive(defmt::Format)]"#);
