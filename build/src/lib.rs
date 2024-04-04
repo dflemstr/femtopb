@@ -136,52 +136,14 @@ pub fn compile_protos_into(
     includes: &[impl AsRef<path::Path>],
     target: impl AsRef<path::Path>,
 ) -> anyhow::Result<()> {
-    let fds = protox::compile(protos, includes)?;
-    let target = target.as_ref();
+    Config::new(target).protos(protos).includes(includes).compile()
+}
 
-    let requests = fds
-        .file
-        .into_iter()
-        .map(|descriptor| {
-            (
-                prost_build::Module::from_protobuf_package_name(descriptor.package()),
-                descriptor,
-            )
-        })
-        .collect::<Vec<_>>();
-
-    let file_names = requests
-        .iter()
-        .map(|req| (req.0.clone(), req.0.to_file_name_or("_")))
-        .collect::<collections::HashMap<prost_build::Module, String>>();
-
-    let modules = prost_build::Config::new()
-        .format(false)
-        .bytes(&["."])
-        .prost_path("::femtopb")
-        .generate(requests)?;
-
-    for (module, content) in modules.into_iter() {
-        let content = transform(&content);
-        let file_name = file_names
-            .get(&module)
-            .expect("every module should have a filename");
-        let output_path = target.join(file_name);
-
-        let previous_content = fs::read(&output_path);
-
-        if previous_content
-            .map(|previous_content| previous_content == content.as_bytes())
-            .unwrap_or(false)
-        {
-            tracing::trace!("unchanged: {:?}", file_name);
-        } else {
-            tracing::trace!("writing: {:?}", file_name);
-            fs::write(output_path, content)?;
-        }
-    }
-
-    Ok(())
+pub struct Config {
+    protos: Vec<path::PathBuf>,
+    includes: Vec<path::PathBuf>,
+    target: path::PathBuf,
+    derive_defmt: bool,
 }
 
 #[derive(Default)]
@@ -192,6 +154,84 @@ struct FieldMetadata {
     is_oneof: Option<syn::Path>,
     is_repeated: bool,
     is_packed: bool,
+}
+
+impl Config {
+    pub fn new(target: impl AsRef<path::Path>) -> Self {
+        let target = target.as_ref().to_owned();
+        Self { protos: Vec::new(), includes: Vec::new(), target, derive_defmt: false }
+    }
+
+    pub fn protos(&mut self, protos: &[impl AsRef<path::Path>]) -> &mut Self {
+        self.protos = protos.iter().map(|p| p.as_ref().to_owned()).collect();
+        self
+    }
+
+    pub fn includes(&mut self, includes: &[impl AsRef<path::Path>]) -> &mut Self {
+        self.includes = includes.iter().map(|p| p.as_ref().to_owned()).collect();
+        self
+    }
+
+    pub fn derive_defmt(&mut self, value: bool) -> &mut Self {
+        self.derive_defmt = value;
+        self
+    }
+
+    pub fn compile(&mut self) -> anyhow::Result<()> {
+        let fds = protox::compile(&self.protos, &self.includes)?;
+        let target = &self.target;
+
+        let requests = fds
+            .file
+            .into_iter()
+            .map(|descriptor| {
+                (
+                    prost_build::Module::from_protobuf_package_name(descriptor.package()),
+                    descriptor,
+                )
+            })
+            .collect::<Vec<_>>();
+
+        let file_names = requests
+            .iter()
+            .map(|req| (req.0.clone(), req.0.to_file_name_or("_")))
+            .collect::<collections::HashMap<prost_build::Module, String>>();
+
+        let mut config = prost_build::Config::new();
+            config.format(false)
+            .bytes(&["."])
+            .prost_path("::femtopb");
+
+        if self.derive_defmt {
+            config.message_attribute(".", r#"#[derive(defmt::Format)]"#);
+            config.enum_attribute(".", r#"#[derive(defmt::Format)]"#);
+        }
+
+        let modules = config.generate(requests)?;
+
+        for (module, content) in modules.into_iter() {
+            let content = transform(&content);
+
+            let file_name = file_names
+                .get(&module)
+                .expect("every module should have a filename");
+            let output_path = target.join(file_name);
+
+            let previous_content = fs::read(&output_path);
+
+            if previous_content
+                .map(|previous_content| previous_content == content.as_bytes())
+                .unwrap_or(false)
+            {
+                tracing::trace!("unchanged: {:?}", file_name);
+            } else {
+                tracing::trace!("writing: {:?}", file_name);
+                fs::write(output_path, content)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 // Here begins the adventure of converting prost-build output into the equivalent femtopb code.

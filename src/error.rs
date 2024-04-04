@@ -7,6 +7,7 @@ use crate::encoding;
 /// Protobuf message. The error details should be considered 'best effort': in
 /// general it is not possible to exactly pinpoint why data is malformed.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[non_exhaustive]
 pub enum DecodeError {
     /// We were unable to decode a varint, because the last byte overflowed a 64-bit integer; the
@@ -41,7 +42,10 @@ pub enum DecodeError {
     /// but invalid field tag value.
     InvalidTagValue(u32),
     /// The encountered string field does not contain valid UTF-8 data.
-    InvalidUtf8(core::str::Utf8Error),
+    InvalidUtf8 {
+        valid_up_to: usize,
+        error_len: Option<usize>,
+    },
 }
 
 /// A Protobuf message encoding error.
@@ -50,6 +54,7 @@ pub enum DecodeError {
 /// provided buffer had insufficient capacity. Message encoding is otherwise
 /// infallible.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct EncodeError {
     /// How much space was required for the encode operation to complete
     pub required: usize,

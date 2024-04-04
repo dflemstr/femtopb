@@ -9,6 +9,7 @@ pub const MAX_TAG: u32 = (1 << 29) - 1;
 
 /// All the possible protobuf wire types for encoding fields.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum WireType {
     Varint = 0,

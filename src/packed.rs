@@ -150,6 +150,29 @@ where
     }
 }
 
+#[cfg(feature = "defmt")]
+impl<'a, A, E> defmt::Format for Packed<'a, A, E>
+where
+    A: Copy + defmt::Format,
+    E: item_encoding::ItemEncoding<'a, A>,
+{
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(fmt, "[");
+        for ref item in self.iter() {
+            match item {
+                Ok(item) => {
+                    defmt::write!(fmt, "{:?}", item);
+                }
+                Err(e) => {
+                    defmt::write!(fmt, "...error: {:?}", e);
+                    break;
+                }
+            }
+        }
+        defmt::write!(fmt, "]");
+    }
+}
+
 impl<'a, A, E> IntoIterator for Packed<'a, A, E>
 where
     A: Copy,

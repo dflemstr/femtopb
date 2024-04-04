@@ -1,5 +1,6 @@
 /// This proto includes every type of field in both singular and repeated
 /// forms.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestAllTypes<'a> {
@@ -284,6 +285,7 @@ pub struct TestAllTypes<'a> {
 }
 /// Nested message and enum types in `TestAllTypes`.
 pub mod test_all_types {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -295,6 +297,7 @@ pub mod test_all_types {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -341,6 +344,7 @@ pub mod test_all_types {
         }
     }
     /// For oneof test
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -364,6 +368,7 @@ pub mod test_all_types {
     }
 }
 /// This proto includes a recursively nested message.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct NestedTestAllTypes<'a> {
@@ -388,6 +393,7 @@ pub struct NestedTestAllTypes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDeprecatedFields<'a> {
@@ -415,6 +421,7 @@ pub struct TestDeprecatedFields<'a> {
 }
 /// Nested message and enum types in `TestDeprecatedFields`.
 pub mod test_deprecated_fields {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -425,6 +432,7 @@ pub mod test_deprecated_fields {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDeprecatedMessage<'a> {
@@ -433,6 +441,7 @@ pub struct TestDeprecatedMessage<'a> {
 }
 /// Define these after TestAllTypes to make sure the compiler can handle
 /// that.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct ForeignMessage<'a> {
@@ -443,18 +452,21 @@ pub struct ForeignMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestReservedFields<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestAllExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMixedFieldsAndExtensions<'a> {
@@ -465,6 +477,7 @@ pub struct TestMixedFieldsAndExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestGroup<'a> {
@@ -481,18 +494,21 @@ pub struct TestGroup<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestGroupExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestChildExtension<'a> {
@@ -507,6 +523,7 @@ pub struct TestChildExtension<'a> {
 }
 /// Emulates wireformat data of TestChildExtension with dynamic extension
 /// (DynamicExtension).
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestChildExtensionData<'a> {
@@ -523,6 +540,7 @@ pub struct TestChildExtensionData<'a> {
 }
 /// Nested message and enum types in `TestChildExtensionData`.
 pub mod test_child_extension_data {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedTestAllExtensionsData<'a> {
@@ -535,6 +553,7 @@ pub mod test_child_extension_data {
     }
     /// Nested message and enum types in `NestedTestAllExtensionsData`.
     pub mod nested_test_all_extensions_data {
+        #[derive(defmt::Format)]
         #[allow(clippy::derive_partial_eq_without_eq)]
         #[derive(Clone, PartialEq, ::femtopb::Message)]
         pub struct NestedDynamicExtensions<'a> {
@@ -547,6 +566,7 @@ pub mod test_child_extension_data {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedChildExtension<'a> {
@@ -559,6 +579,7 @@ pub struct TestNestedChildExtension<'a> {
 }
 /// Emulates wireformat data of TestNestedChildExtension with dynamic extension
 /// (DynamicExtension).
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedChildExtensionData<'a> {
@@ -571,6 +592,7 @@ pub struct TestNestedChildExtensionData<'a> {
 }
 /// Required and closed enum fields are considered unknown fields if the value is
 /// not valid. We need to make sure it functions as expected.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnum<'a> {
@@ -583,6 +605,7 @@ pub struct TestRequiredEnum<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// TestRequiredEnum + using enum values that won't fit to 64 bitmask.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnumNoMask<'a> {
@@ -598,6 +621,7 @@ pub struct TestRequiredEnumNoMask<'a> {
 }
 /// Nested message and enum types in `TestRequiredEnumNoMask`.
 pub mod test_required_enum_no_mask {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -644,6 +668,7 @@ pub mod test_required_enum_no_mask {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnumMulti<'a> {
@@ -666,6 +691,7 @@ pub struct TestRequiredEnumMulti<'a> {
 }
 /// Nested message and enum types in `TestRequiredEnumMulti`.
 pub mod test_required_enum_multi {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -711,6 +737,7 @@ pub mod test_required_enum_multi {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredNoMaskMulti<'a> {
@@ -742,6 +769,7 @@ pub struct TestRequiredNoMaskMulti<'a> {
 }
 /// Nested message and enum types in `TestRequiredNoMaskMulti`.
 pub mod test_required_no_mask_multi {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -792,6 +820,7 @@ pub mod test_required_no_mask_multi {
 /// do anything with it.  Note that we don't need to test every type of
 /// required filed because the code output is basically identical to
 /// optional fields for all types.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequired<'a> {
@@ -869,6 +898,7 @@ pub struct TestRequired<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredForeign<'a> {
@@ -888,6 +918,7 @@ pub struct TestRequiredForeign<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredMessage<'a> {
@@ -904,6 +935,7 @@ pub struct TestRequiredMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedRequiredForeign<'a> {
@@ -928,6 +960,7 @@ pub struct TestNestedRequiredForeign<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that we can use NestedMessage from outside TestAllTypes.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestForeignNested<'a> {
@@ -937,6 +970,7 @@ pub struct TestForeignNested<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// TestEmptyMessage is used to test unknown field support.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEmptyMessage<'a> {
@@ -945,6 +979,7 @@ pub struct TestEmptyMessage<'a> {
 }
 /// Like above, but declare all field numbers as potential extensions.  No
 /// actual extensions should ever be defined for this type.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEmptyMessageWithExtensions<'a> {
@@ -952,6 +987,7 @@ pub struct TestEmptyMessageWithExtensions<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Needed for a Python test.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPickleNestedMessage<'a> {
@@ -960,6 +996,7 @@ pub struct TestPickleNestedMessage<'a> {
 }
 /// Nested message and enum types in `TestPickleNestedMessage`.
 pub mod test_pickle_nested_message {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -970,6 +1007,7 @@ pub mod test_pickle_nested_message {
     }
     /// Nested message and enum types in `NestedMessage`.
     pub mod nested_message {
+        #[derive(defmt::Format)]
         #[allow(clippy::derive_partial_eq_without_eq)]
         #[derive(Clone, PartialEq, ::femtopb::Message)]
         pub struct NestedNestedMessage<'a> {
@@ -980,6 +1018,7 @@ pub mod test_pickle_nested_message {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMultipleExtensionRanges<'a> {
@@ -987,6 +1026,7 @@ pub struct TestMultipleExtensionRanges<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that really large tag numbers don't break anything.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestReallyLargeTagNumber<'a> {
@@ -999,6 +1039,7 @@ pub struct TestReallyLargeTagNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRecursiveMessage<'a> {
@@ -1012,6 +1053,7 @@ pub struct TestRecursiveMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that mutual recursion works.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMutualRecursionA<'a> {
@@ -1031,6 +1073,7 @@ pub struct TestMutualRecursionA<'a> {
 }
 /// Nested message and enum types in `TestMutualRecursionA`.
 pub mod test_mutual_recursion_a {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct SubMessage<'a> {
@@ -1040,6 +1083,7 @@ pub mod test_mutual_recursion_a {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMutualRecursionB<'a> {
@@ -1052,6 +1096,7 @@ pub struct TestMutualRecursionB<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestIsInitialized<'a> {
@@ -1065,6 +1110,7 @@ pub mod test_is_initialized {
     ///     optional group SubGroup = 1 {
     ///       required int32 i = 2;
     ///     }
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct SubMessage<'a> {
@@ -1078,6 +1124,7 @@ pub mod test_is_initialized {
 /// in protobuf_unittest_proto.
 ///
 /// NO_PROTO1
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDupFieldNumber<'a> {
@@ -1088,6 +1135,7 @@ pub struct TestDupFieldNumber<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Additional messages for testing lazy fields.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEagerMessage<'a> {
@@ -1096,6 +1144,7 @@ pub struct TestEagerMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestLazyMessage<'a> {
@@ -1104,6 +1153,7 @@ pub struct TestLazyMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestLazyMessageRepeated<'a> {
@@ -1116,6 +1166,7 @@ pub struct TestLazyMessageRepeated<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEagerMaybeLazy<'a> {
@@ -1130,6 +1181,7 @@ pub struct TestEagerMaybeLazy<'a> {
 }
 /// Nested message and enum types in `TestEagerMaybeLazy`.
 pub mod test_eager_maybe_lazy {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -1140,6 +1192,7 @@ pub mod test_eager_maybe_lazy {
     }
 }
 /// Needed for a Python test.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedMessageHasBits<'a> {
@@ -1152,6 +1205,7 @@ pub struct TestNestedMessageHasBits<'a> {
 }
 /// Nested message and enum types in `TestNestedMessageHasBits`.
 pub mod test_nested_message_has_bits {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -1173,6 +1227,7 @@ pub mod test_nested_message_has_bits {
 }
 /// Test message with CamelCase field names.  This violates Protocol Buffer
 /// standard style.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCamelCaseFieldNames<'a> {
@@ -1231,6 +1286,7 @@ pub struct TestCamelCaseFieldNames<'a> {
 }
 /// We list fields out of order, to ensure that we're using field number and not
 /// field index to determine serialization order.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestFieldOrderings<'a> {
@@ -1249,6 +1305,7 @@ pub struct TestFieldOrderings<'a> {
 }
 /// Nested message and enum types in `TestFieldOrderings`.
 pub mod test_field_orderings {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -1263,6 +1320,7 @@ pub mod test_field_orderings {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionOrderings1<'a> {
@@ -1271,6 +1329,7 @@ pub struct TestExtensionOrderings1<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionOrderings2<'a> {
@@ -1281,6 +1340,7 @@ pub struct TestExtensionOrderings2<'a> {
 }
 /// Nested message and enum types in `TestExtensionOrderings2`.
 pub mod test_extension_orderings2 {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct TestExtensionOrderings3<'a> {
@@ -1290,6 +1350,7 @@ pub mod test_extension_orderings2 {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtremeDefaultValues<'a> {
@@ -1367,6 +1428,7 @@ pub struct TestExtremeDefaultValues<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct SparseEnumMessage<'a> {
@@ -1378,6 +1440,7 @@ pub struct SparseEnumMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test String and Bytes: string is for valid UTF-8 strings
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct OneString<'a> {
@@ -1386,6 +1449,7 @@ pub struct OneString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreString<'a> {
@@ -1398,6 +1462,7 @@ pub struct MoreString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct OneBytes<'a> {
@@ -1406,6 +1471,7 @@ pub struct OneBytes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreBytes<'a> {
@@ -1418,6 +1484,7 @@ pub struct MoreBytes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct ManyOptionalString<'a> {
@@ -1489,6 +1556,7 @@ pub struct ManyOptionalString<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test int32, uint32, int64, uint64, and bool are all compatible
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int32Message<'a> {
@@ -1497,6 +1565,7 @@ pub struct Int32Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Uint32Message<'a> {
@@ -1505,6 +1574,7 @@ pub struct Uint32Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int64Message<'a> {
@@ -1513,6 +1583,7 @@ pub struct Int64Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Uint64Message<'a> {
@@ -1521,6 +1592,7 @@ pub struct Uint64Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BoolMessage<'a> {
@@ -1530,6 +1602,7 @@ pub struct BoolMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test oneofs.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneof<'a> {
@@ -1540,6 +1613,7 @@ pub struct TestOneof<'a> {
 }
 /// Nested message and enum types in `TestOneof`.
 pub mod test_oneof {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -1558,6 +1632,7 @@ pub mod test_oneof {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneofBackwardsCompatible<'a> {
@@ -1574,6 +1649,7 @@ pub struct TestOneofBackwardsCompatible<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneof2<'a> {
@@ -1590,6 +1666,7 @@ pub struct TestOneof2<'a> {
 }
 /// Nested message and enum types in `TestOneof2`.
 pub mod test_oneof2 {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -1608,6 +1685,7 @@ pub mod test_oneof2 {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -1649,6 +1727,7 @@ pub mod test_oneof2 {
             }
         }
     }
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -1678,6 +1757,7 @@ pub mod test_oneof2 {
         #[femtopb(phantom)]
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -1706,6 +1786,7 @@ pub mod test_oneof2 {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredOneof<'a> {
@@ -1716,6 +1797,7 @@ pub struct TestRequiredOneof<'a> {
 }
 /// Nested message and enum types in `TestRequiredOneof`.
 pub mod test_required_oneof {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
@@ -1724,6 +1806,7 @@ pub mod test_required_oneof {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -1740,6 +1823,7 @@ pub mod test_required_oneof {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedTypes<'a> {
@@ -1832,6 +1916,7 @@ pub struct TestPackedTypes<'a> {
 }
 /// A message with the same fields as TestPackedTypes, but without packing. Used
 /// to test packed <-> unpacked wire compatibility.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestUnpackedTypes<'a> {
@@ -1922,12 +2007,14 @@ pub struct TestUnpackedTypes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestUnpackedExtensions<'a> {
@@ -1937,6 +2024,7 @@ pub struct TestUnpackedExtensions<'a> {
 /// Used by ExtensionSetTest/DynamicExtensions.  The test actually builds
 /// a set of extensions to TestAllExtensions dynamically, based on the fields
 /// of this message type.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDynamicExtensions<'a> {
@@ -1973,6 +2061,7 @@ pub struct TestDynamicExtensions<'a> {
 }
 /// Nested message and enum types in `TestDynamicExtensions`.
 pub mod test_dynamic_extensions {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct DynamicMessageType<'a> {
@@ -1981,6 +2070,7 @@ pub mod test_dynamic_extensions {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -2023,6 +2113,7 @@ pub mod test_dynamic_extensions {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRepeatedString<'a> {
@@ -2053,6 +2144,7 @@ pub struct TestRepeatedString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRepeatedScalarDifferentTagSizes<'a> {
@@ -2103,6 +2195,7 @@ pub struct TestRepeatedScalarDifferentTagSizes<'a> {
 }
 /// Test that if an optional or required message/group field appears multiple
 /// times in the input, they need to be merged.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestParsingMerge<'a> {
@@ -2126,6 +2219,7 @@ pub mod test_parsing_merge {
     /// RepeatedFieldsGenerator to bytes, and parse the bytes to TestParsingMerge.
     /// Repeated fields in RepeatedFieldsGenerator are expected to be merged into
     /// the corresponding required/optional fields in TestParsingMerge.
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct RepeatedFieldsGenerator<'a> {
@@ -2171,6 +2265,7 @@ pub mod test_parsing_merge {
 }
 /// Test that the correct exception is thrown by parseFrom in a corner case
 /// involving merging, extensions, and required fields.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMergeException<'a> {
@@ -2179,6 +2274,7 @@ pub struct TestMergeException<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCommentInjectionMessage<'a> {
@@ -2190,6 +2286,7 @@ pub struct TestCommentInjectionMessage<'a> {
 }
 /// Used to check that the c++ code generator re-orders messages to reduce
 /// padding.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMessageSize<'a> {
@@ -2209,42 +2306,49 @@ pub struct TestMessageSize<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that RPC services work.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct FooRequest<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct FooResponse<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct FooClientMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct FooServerMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BarRequest<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BarResponse<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestJsonName<'a> {
@@ -2265,6 +2369,7 @@ pub struct TestJsonName<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestHugeFieldNumbers<'a> {
@@ -2301,6 +2406,7 @@ pub struct TestHugeFieldNumbers<'a> {
 }
 /// Nested message and enum types in `TestHugeFieldNumbers`.
 pub mod test_huge_field_numbers {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
@@ -2317,6 +2423,7 @@ pub mod test_huge_field_numbers {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionInsideTable<'a> {
@@ -2362,12 +2469,14 @@ pub struct TestExtensionInsideTable<'a> {
 ///       optional string but_why_tho = 5;
 ///     }
 ///   }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedGroupExtensionOuter<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedGroupExtensionInnerExtension<'a> {
@@ -2376,6 +2485,7 @@ pub struct TestNestedGroupExtensionInnerExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionRangeSerialize<'a> {
@@ -2390,6 +2500,7 @@ pub struct TestExtensionRangeSerialize<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32Simple<'a> {
@@ -2404,6 +2515,7 @@ pub struct TestVerifyInt32Simple<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32<'a> {
@@ -2426,6 +2538,7 @@ pub struct TestVerifyInt32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyMostlyInt32<'a> {
@@ -2454,6 +2567,7 @@ pub struct TestVerifyMostlyInt32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyMostlyInt32BigFieldNumber<'a> {
@@ -2484,6 +2598,7 @@ pub struct TestVerifyMostlyInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32Simple<'a> {
@@ -2498,6 +2613,7 @@ pub struct TestVerifyUint32Simple<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32<'a> {
@@ -2520,6 +2636,7 @@ pub struct TestVerifyUint32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyOneUint32<'a> {
@@ -2542,6 +2659,7 @@ pub struct TestVerifyOneUint32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyOneInt32BigFieldNumber<'a> {
@@ -2566,6 +2684,7 @@ pub struct TestVerifyOneInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32BigFieldNumber<'a> {
@@ -2592,6 +2711,7 @@ pub struct TestVerifyInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32BigFieldNumber<'a> {
@@ -2618,6 +2738,7 @@ pub struct TestVerifyUint32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyBigFieldNumberUint32<'a> {
@@ -2630,6 +2751,7 @@ pub struct TestVerifyBigFieldNumberUint32<'a> {
 }
 /// Nested message and enum types in `TestVerifyBigFieldNumberUint32`.
 pub mod test_verify_big_field_number_uint32 {
+    #[derive(defmt::Format)]
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct Nested<'a> {
@@ -2665,6 +2787,7 @@ pub mod test_verify_big_field_number_uint32 {
 }
 /// This message contains different kind of enums to exercise the different
 /// parsers in table-driven.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct EnumParseTester<'a> {
@@ -2868,6 +2991,7 @@ pub struct EnumParseTester<'a> {
 }
 /// Nested message and enum types in `EnumParseTester`.
 pub mod enum_parse_tester {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -2909,6 +3033,7 @@ pub mod enum_parse_tester {
             }
         }
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -2950,6 +3075,7 @@ pub mod enum_parse_tester {
             }
         }
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3087,6 +3213,7 @@ pub mod enum_parse_tester {
             }
         }
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3140,6 +3267,7 @@ pub mod enum_parse_tester {
 }
 /// This message contains different kind of bool fields to exercise the different
 /// parsers in table-drived.
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BoolParseTester<'a> {
@@ -3191,6 +3319,7 @@ pub struct BoolParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int32ParseTester<'a> {
@@ -3242,6 +3371,7 @@ pub struct Int32ParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int64ParseTester<'a> {
@@ -3293,6 +3423,7 @@ pub struct Int64ParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct InlinedStringIdxRegressionProto<'a> {
@@ -3314,6 +3445,7 @@ pub struct InlinedStringIdxRegressionProto<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct StringParseTester<'a> {
@@ -3344,6 +3476,7 @@ pub struct StringParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BadFieldNames<'a> {
@@ -3354,6 +3487,7 @@ pub struct BadFieldNames<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedMessageRedaction<'a> {
@@ -3364,6 +3498,7 @@ pub struct TestNestedMessageRedaction<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct RedactedFields<'a> {
@@ -3408,6 +3543,7 @@ pub struct RedactedFields<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCord<'a> {
@@ -3418,6 +3554,7 @@ pub struct TestCord<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedEnumSmallRange<'a> {
@@ -3432,6 +3569,7 @@ pub struct TestPackedEnumSmallRange<'a> {
 }
 /// Nested message and enum types in `TestPackedEnumSmallRange`.
 pub mod test_packed_enum_small_range {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3477,6 +3615,7 @@ pub mod test_packed_enum_small_range {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct EnumsForBenchmark<'a> {
@@ -3485,6 +3624,7 @@ pub struct EnumsForBenchmark<'a> {
 }
 /// Nested message and enum types in `EnumsForBenchmark`.
 pub mod enums_for_benchmark {
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3566,6 +3706,7 @@ pub mod enums_for_benchmark {
         }
     }
     /// Has a few holes, bitmap can be used.
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3646,6 +3787,7 @@ pub mod enums_for_benchmark {
             }
         }
     }
+    #[derive(defmt::Format)]
     #[derive(
         Clone,
         Copy,
@@ -3727,6 +3869,7 @@ pub mod enums_for_benchmark {
         }
     }
 }
+#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMessageWithManyRepeatedPtrFields<'a> {
@@ -3925,6 +4068,7 @@ pub struct TestMessageWithManyRepeatedPtrFields<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
+#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
@@ -3970,6 +4114,7 @@ impl ForeignEnum {
         }
     }
 }
+#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
@@ -4006,6 +4151,7 @@ impl TestReservedEnumFields {
     }
 }
 /// Test an enum that has multiple values with the same number.
+#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
@@ -4048,6 +4194,7 @@ impl TestEnumWithDupValue {
     }
 }
 /// Test an enum with large, unordered values.
+#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
@@ -4101,6 +4248,7 @@ impl TestSparseEnum {
         }
     }
 }
+#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,

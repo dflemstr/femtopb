@@ -6,6 +6,7 @@ use core::marker;
 ///
 /// Use `Deferred::decode()` to do a deferred decode of an `A`.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Deferred<'a, A>
 where
     A: message::Message<'a>,

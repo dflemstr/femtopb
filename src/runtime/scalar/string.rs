@@ -73,7 +73,10 @@ pub(crate) fn decode_single_value<'a>(
     let len = encoding::decode_varint(cursor)? as usize;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
-        let string = str::from_utf8(bytes).map_err(error::DecodeError::InvalidUtf8)?;
+        let string = str::from_utf8(bytes).map_err(|e| error::DecodeError::InvalidUtf8 {
+            valid_up_to: e.valid_up_to(),
+            error_len: e.error_len(),
+        })?;
         *cursor = rest;
         Ok(string)
     } else {

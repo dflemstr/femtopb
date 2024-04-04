@@ -14,6 +14,7 @@ license = "Apache-2.0"
 [dependencies]
 femtopb-derive = { path = "derive", version = "0.2.0" }
 no-panic = { version = "0.1.29", optional = true }
+defmt = { version = "0.3.6", optional = true }
 
 [dev-dependencies]
 bytes = "1.6.0"
@@ -29,6 +30,7 @@ prost = "0.12.3"
 # code size without having to resort to `panic = "abort"`, or want to avoid trapping into the panic handler for other
 # reasons.
 assert-no-panic = ["dep:no-panic"]
+defmt = ["dep:defmt"]
 
 [profile.release]
 opt-level = 3

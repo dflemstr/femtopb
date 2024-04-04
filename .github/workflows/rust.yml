@@ -22,3 +22,5 @@ jobs:
       run: cargo test --all --verbose
     - name: Check for panics in release builds
       run: cargo build --package test-build-protos --features assert-no-panic --release
+    - name: Check for defmt end-to-end support
+      run: cargo build --package test-build-protos --features defmt

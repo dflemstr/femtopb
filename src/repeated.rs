@@ -1,6 +1,5 @@
 //! `Repeated` scalar or composite values.
-use crate::{encoding, list};
-use crate::{error, item_encoding};
+use crate::{encoding, error, item_encoding, list};
 use core::marker;
 use core::{fmt, slice};
 
@@ -136,6 +135,29 @@ where
             list_fmt.entry(item);
         }
         list_fmt.finish()
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl<'a, A, E> defmt::Format for Repeated<'a, A, E>
+where
+    A: Clone + defmt::Format,
+    E: item_encoding::ItemEncoding<'a, A>,
+{
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(fmt, "[");
+        for ref item in self.iter() {
+            match item {
+                Ok(item) => {
+                    defmt::write!(fmt, "{:?}", item);
+                }
+                Err(e) => {
+                    defmt::write!(fmt, "...error: {:?}", e);
+                    break;
+                }
+            }
+        }
+        defmt::write!(fmt, "]");
     }
 }
 

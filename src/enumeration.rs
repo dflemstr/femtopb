@@ -19,6 +19,7 @@ pub trait Enumeration: Clone + Copy + Default {
 ///
 /// It is usually a good idea to program defensively and handle this case explicitly.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum EnumValue<E> {
     /// A known value of type `E`.
     Known(E),
