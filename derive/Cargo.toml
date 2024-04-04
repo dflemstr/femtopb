@@ -5,7 +5,7 @@ description = "Derive macros for `femtopb` traits"
 repository = "https://github.com/dflemstr/femtopb"
 categories = ["embedded", "encoding", "no-std", "no-std::no-alloc"]
 keywords = ["protobuf", "proto"]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
 
