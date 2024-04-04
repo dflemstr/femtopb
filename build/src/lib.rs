@@ -123,10 +123,7 @@ pub fn compile_protos(
     protos: &[impl AsRef<path::Path>],
     includes: &[impl AsRef<path::Path>],
 ) -> anyhow::Result<()> {
-    let out_dir_value = env::var_os("OUT_DIR")
-        .ok_or_else(|| anyhow::anyhow!("OUT_DIR environment variable is not set"))?;
-    let target = path::Path::new(&out_dir_value);
-    compile_protos_into(protos, includes, target)
+    Config::new().protos(protos).includes(includes).compile()
 }
 
 /// Like `compile_protos`, but lets you specify the target directory explicitly, instead of relying
@@ -136,7 +133,8 @@ pub fn compile_protos_into(
     includes: &[impl AsRef<path::Path>],
     target: impl AsRef<path::Path>,
 ) -> anyhow::Result<()> {
-    Config::new(target)
+    Config::new()
+        .target(target)
         .protos(protos)
         .includes(includes)
         .compile()
@@ -145,7 +143,7 @@ pub fn compile_protos_into(
 pub struct Config {
     protos: Vec<path::PathBuf>,
     includes: Vec<path::PathBuf>,
-    target: path::PathBuf,
+    target: Option<path::PathBuf>,
     derive_defmt: bool,
 }
 
@@ -160,14 +158,18 @@ struct FieldMetadata {
 }
 
 impl Config {
-    pub fn new(target: impl AsRef<path::Path>) -> Self {
-        let target = target.as_ref().to_owned();
+    pub fn new() -> Self {
         Self {
             protos: Vec::new(),
             includes: Vec::new(),
-            target,
+            target: None,
             derive_defmt: false,
         }
+    }
+
+    pub fn target(&mut self, target: impl AsRef<path::Path>) -> &mut Self {
+        self.target = Some(target.as_ref().to_owned());
+        self
     }
 
     pub fn protos(&mut self, protos: &[impl AsRef<path::Path>]) -> &mut Self {
@@ -187,7 +189,15 @@ impl Config {
 
     pub fn compile(&mut self) -> anyhow::Result<()> {
         let fds = protox::compile(&self.protos, &self.includes)?;
-        let target = &self.target;
+        let target = if let Some(ref t) = self.target {
+            t.clone()
+        } else {
+            path::Path::new(
+                &env::var_os("OUT_DIR")
+                    .ok_or_else(|| anyhow::anyhow!("OUT_DIR environment variable is not set"))?,
+            )
+            .to_owned()
+        };
 
         let requests = fds
             .file
