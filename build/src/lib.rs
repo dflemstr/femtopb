@@ -219,8 +219,8 @@ impl Config {
         config.format(false).bytes(&["."]).prost_path("::femtopb");
 
         if self.derive_defmt {
-            config.message_attribute(".", r#"#[derive(defmt::Format)]"#);
-            config.enum_attribute(".", r#"#[derive(defmt::Format)]"#);
+            config.message_attribute(".", r#"#[derive(::defmt::Format)]"#);
+            config.enum_attribute(".", r#"#[derive(::defmt::Format)]"#);
         }
 
         let modules = config.generate(requests)?;
