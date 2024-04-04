@@ -5,14 +5,14 @@ description = "A no-std, no-alloc set of tools for protobuf encoding and decodin
 repository = "https://github.com/dflemstr/femtopb"
 categories = ["embedded", "encoding", "no-std", "no-std::no-alloc"]
 keywords = ["protobuf", "proto"]
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-femtopb-derive = { path = "derive", version = "0.4.0" }
+femtopb-derive = { path = "derive", version = "0.4.1" }
 no-panic = { version = "0.1.29", optional = true }
 defmt = { version = "0.3.6", optional = true }
 
