@@ -1,4 +1,3 @@
-#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct PublicImportMessage<'a> {
@@ -7,7 +6,6 @@ pub struct PublicImportMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[derive(defmt::Format)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct ImportMessage<'a> {
@@ -16,7 +14,6 @@ pub struct ImportMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
@@ -59,7 +56,6 @@ impl ImportEnum {
     }
 }
 /// To use an enum in a map, it must has the first value as 0.
-#[derive(defmt::Format)]
 #[derive(
     Clone,
     Copy,
