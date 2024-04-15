@@ -35,8 +35,6 @@
 //! should probably match your directory structure, too).
 //!
 //! ```rust,ignore
-//! // Include the `items` module, which is generated from items.proto.
-//! // It is important to maintain the same structure as in the proto.
 //! pub mod myapi {
 //!     pub mod v1 {
 //!         include!(concat!(env!("OUT_DIR"), "/myapi.v1.rs"));
