@@ -389,9 +389,26 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 add_separator(&mut new_attr);
                 new_attr.push_str(&path.segments[0].ident.to_string());
             } else if path.is_ident("packed") {
-                metadata.is_repeated = false;
-                metadata.is_packed = true;
-                new_attr = new_attr.replace("repeated", "packed");
+                let name_value = meta.require_name_value().unwrap();
+                match &name_value.value {
+                    syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(str),
+                        ..
+                    }) => {
+                        match str.value().as_str() {
+                            "true" => {
+                                metadata.is_repeated = false;
+                                metadata.is_packed = true;
+                                new_attr = new_attr.replace("repeated", "packed");
+                            }
+                            "false" => {
+                                // no-op
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+                    _ => unreachable!(),
+                }
             } else if path.is_ident("enumeration") {
                 let name_value = meta.require_name_value().unwrap();
                 match &name_value.value {
@@ -923,80 +940,80 @@ pub struct TestAllTypes {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestAllTypes<'a> {
     /// Repeated
-    #[femtopb(int32, packed, tag = 31)]
-    pub repeated_int32: ::femtopb::packed::Packed<
+    #[femtopb(int32, repeated, tag = 31)]
+    pub repeated_int32: ::femtopb::repeated::Repeated<
         'a,
         i32,
         ::femtopb::item_encoding::Int32,
     >,
-    #[femtopb(int64, packed, tag = 32)]
-    pub repeated_int64: ::femtopb::packed::Packed<
+    #[femtopb(int64, repeated, tag = 32)]
+    pub repeated_int64: ::femtopb::repeated::Repeated<
         'a,
         i64,
         ::femtopb::item_encoding::Int64,
     >,
-    #[femtopb(uint32, packed, tag = 33)]
-    pub repeated_uint32: ::femtopb::packed::Packed<
+    #[femtopb(uint32, repeated, tag = 33)]
+    pub repeated_uint32: ::femtopb::repeated::Repeated<
         'a,
         u32,
         ::femtopb::item_encoding::UInt32,
     >,
-    #[femtopb(uint64, packed, tag = 34)]
-    pub repeated_uint64: ::femtopb::packed::Packed<
+    #[femtopb(uint64, repeated, tag = 34)]
+    pub repeated_uint64: ::femtopb::repeated::Repeated<
         'a,
         u64,
         ::femtopb::item_encoding::UInt64,
     >,
-    #[femtopb(sint32, packed, tag = 35)]
-    pub repeated_sint32: ::femtopb::packed::Packed<
+    #[femtopb(sint32, repeated, tag = 35)]
+    pub repeated_sint32: ::femtopb::repeated::Repeated<
         'a,
         i32,
         ::femtopb::item_encoding::SInt32,
     >,
-    #[femtopb(sint64, packed, tag = 36)]
-    pub repeated_sint64: ::femtopb::packed::Packed<
+    #[femtopb(sint64, repeated, tag = 36)]
+    pub repeated_sint64: ::femtopb::repeated::Repeated<
         'a,
         i64,
         ::femtopb::item_encoding::SInt64,
     >,
-    #[femtopb(fixed32, packed, tag = 37)]
-    pub repeated_fixed32: ::femtopb::packed::Packed<
+    #[femtopb(fixed32, repeated, tag = 37)]
+    pub repeated_fixed32: ::femtopb::repeated::Repeated<
         'a,
         u32,
         ::femtopb::item_encoding::Fixed32,
     >,
-    #[femtopb(fixed64, packed, tag = 38)]
-    pub repeated_fixed64: ::femtopb::packed::Packed<
+    #[femtopb(fixed64, repeated, tag = 38)]
+    pub repeated_fixed64: ::femtopb::repeated::Repeated<
         'a,
         u64,
         ::femtopb::item_encoding::Fixed64,
     >,
-    #[femtopb(sfixed32, packed, tag = 39)]
-    pub repeated_sfixed32: ::femtopb::packed::Packed<
+    #[femtopb(sfixed32, repeated, tag = 39)]
+    pub repeated_sfixed32: ::femtopb::repeated::Repeated<
         'a,
         i32,
         ::femtopb::item_encoding::SFixed32,
     >,
-    #[femtopb(sfixed64, packed, tag = 40)]
-    pub repeated_sfixed64: ::femtopb::packed::Packed<
+    #[femtopb(sfixed64, repeated, tag = 40)]
+    pub repeated_sfixed64: ::femtopb::repeated::Repeated<
         'a,
         i64,
         ::femtopb::item_encoding::SFixed64,
     >,
-    #[femtopb(float, packed, tag = 41)]
-    pub repeated_float: ::femtopb::packed::Packed<
+    #[femtopb(float, repeated, tag = 41)]
+    pub repeated_float: ::femtopb::repeated::Repeated<
         'a,
         f32,
         ::femtopb::item_encoding::Float,
     >,
-    #[femtopb(double, packed, tag = 42)]
-    pub repeated_double: ::femtopb::packed::Packed<
+    #[femtopb(double, repeated, tag = 42)]
+    pub repeated_double: ::femtopb::repeated::Repeated<
         'a,
         f64,
         ::femtopb::item_encoding::Double,
     >,
-    #[femtopb(bool, packed, tag = 43)]
-    pub repeated_bool: ::femtopb::packed::Packed<
+    #[femtopb(bool, repeated, tag = 43)]
+    pub repeated_bool: ::femtopb::repeated::Repeated<
         'a,
         bool,
         ::femtopb::item_encoding::Bool,

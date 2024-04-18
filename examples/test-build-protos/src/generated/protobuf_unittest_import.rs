@@ -14,17 +14,7 @@ pub struct ImportMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    ::femtopb::Enumeration
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum ImportEnum {
@@ -56,17 +46,7 @@ impl ImportEnum {
     }
 }
 /// To use an enum in a map, it must has the first value as 0.
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    ::femtopb::Enumeration
-)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum ImportEnumForMap {
