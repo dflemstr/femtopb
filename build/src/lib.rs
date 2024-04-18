@@ -385,7 +385,6 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 add_separator(&mut new_attr);
                 new_attr.push_str(&path.segments[0].ident.to_string());
             } else if path.is_ident("repeated") {
-                add_separator(&mut new_attr);
                 let packed = if let Some(scalar) = &metadata.is_scalar {
                     // Assume packed, change back later if we encounter `packed="false"` from
                     // prost
@@ -394,6 +393,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                     metadata.is_enum.is_some()
                 };
 
+                add_separator(&mut new_attr);
                 if packed {
                     metadata.is_packed = true;
                     new_attr.push_str("packed");
@@ -414,6 +414,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                             if new_attr.contains("repeated") {
                                 new_attr = new_attr.replace("repeated", "packed");
                             } else {
+                                add_separator(&mut new_attr);
                                 new_attr.push_str("packed");
                             }
                         }
@@ -423,6 +424,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                             if new_attr.contains("packed") {
                                 new_attr = new_attr.replace("packed", "repeated");
                             } else {
+                                add_separator(&mut new_attr);
                                 new_attr.push_str("packed");
                             }
                         }
