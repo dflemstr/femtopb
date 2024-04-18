@@ -385,28 +385,49 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 add_separator(&mut new_attr);
                 new_attr.push_str(&path.segments[0].ident.to_string());
             } else if path.is_ident("repeated") {
-                metadata.is_repeated = true;
                 add_separator(&mut new_attr);
-                new_attr.push_str(&path.segments[0].ident.to_string());
+                let packed = if let Some(scalar) = &metadata.is_scalar {
+                    // Assume packed, change back later if we encounter `packed="false"` from
+                    // prost
+                    can_pack_scalar(scalar)
+                } else {
+                    metadata.is_enum.is_some()
+                };
+
+                if packed {
+                    metadata.is_packed = true;
+                    new_attr.push_str("packed");
+                } else {
+                    metadata.is_repeated = true;
+                    new_attr.push_str("repeated");
+                }
             } else if path.is_ident("packed") {
                 let name_value = meta.require_name_value().unwrap();
                 match &name_value.value {
                     syn::Expr::Lit(syn::ExprLit {
                         lit: syn::Lit::Str(str),
                         ..
-                    }) => {
-                        match str.value().as_str() {
-                            "true" => {
-                                metadata.is_repeated = false;
-                                metadata.is_packed = true;
+                    }) => match str.value().as_str() {
+                        "true" => {
+                            metadata.is_repeated = false;
+                            metadata.is_packed = true;
+                            if new_attr.contains("repeated") {
                                 new_attr = new_attr.replace("repeated", "packed");
+                            } else {
+                                new_attr.push_str("packed");
                             }
-                            "false" => {
-                                // no-op
-                            }
-                            _ => unreachable!(),
                         }
-                    }
+                        "false" => {
+                            metadata.is_repeated = true;
+                            metadata.is_packed = false;
+                            if new_attr.contains("packed") {
+                                new_attr = new_attr.replace("packed", "repeated");
+                            } else {
+                                new_attr.push_str("packed");
+                            }
+                        }
+                        _ => unreachable!(),
+                    },
                     _ => unreachable!(),
                 }
             } else if path.is_ident("enumeration") {
@@ -616,6 +637,26 @@ fn transform_field_type(ty: &mut syn::Type, metadata: &FieldMetadata) {
         }
         _ => {}
     }
+}
+
+/// Returns `true` if the repeated field type can be packed.
+fn can_pack_scalar(field: &str) -> bool {
+    matches!(
+        field,
+        "float"
+            | "double"
+            | "int32"
+            | "int64"
+            | "uint32"
+            | "uint64"
+            | "sint32"
+            | "sint64"
+            | "fixed32"
+            | "fixed64"
+            | "sfixed32"
+            | "sfixed64"
+            | "bool"
+    )
 }
 
 fn has_message_derive(struct_item: &syn::ItemStruct) -> bool {
