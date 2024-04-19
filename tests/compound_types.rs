@@ -45,6 +45,26 @@ pub struct Compound<'a> {
     pub repeated_message:
         femtopb::Repeated<'a, Basic<'a>, femtopb::item_encoding::Message<'a, Basic<'a>>>,
 
+    #[femtopb(enumeration, packed, tag = 4)]
+    pub packed_enumeration: femtopb::Packed<
+        'a,
+        femtopb::EnumValue<BasicEnumeration>,
+        femtopb::item_encoding::Enum<BasicEnumeration>,
+    >,
+
+    #[femtopb(unknown_fields)]
+    pub unknown_fields: femtopb::UnknownFields<'a>,
+}
+
+#[derive(Clone, Debug, PartialEq, femtopb::Message)]
+pub struct PackedEnum<'a> {
+    #[femtopb(enumeration, packed, tag = 1)]
+    pub packed_enumeration: femtopb::Packed<
+        'a,
+        femtopb::EnumValue<BasicEnumeration>,
+        femtopb::item_encoding::Enum<BasicEnumeration>,
+    >,
+
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -186,6 +206,7 @@ pub struct ArbitraryCompound {
     pub optional_message: Option<ArbitraryBasic>,
     pub required_message: ArbitraryBasic,
     pub repeated_message: Vec<ArbitraryBasic>,
+    pub packed_enumeration: Vec<ArbitraryBasicEnumerationEnumValue>,
 }
 
 impl<'a> Basic<'a> {
@@ -213,10 +234,7 @@ impl<'a> Basic<'a> {
 
 impl ProstBasic {
     fn from_arbitrary(arbitrary: &ArbitraryBasic) -> Self {
-        let enumeration = match arbitrary.enumeration {
-            ArbitraryBasicEnumerationEnumValue::Known(v) => femtopb::EnumValue::Known(v).to_raw(),
-            ArbitraryBasicEnumerationEnumValue::Unknown(v) => v,
-        };
+        let enumeration = arbitrary.enumeration.to_prost();
         let oneof = match arbitrary.oneof {
             None => None,
             Some(ArbitraryBasicOneof::Int(i)) => Some(ProstBasicOneof::Int(i)),
@@ -229,6 +247,21 @@ impl ProstBasic {
             optional_string: arbitrary.optional_string.clone(),
             enumeration,
             oneof,
+        }
+    }
+}
+
+impl ArbitraryBasicEnumerationEnumValue {
+    fn to_femtopb(self) -> femtopb::EnumValue<BasicEnumeration> {
+        match self {
+            ArbitraryBasicEnumerationEnumValue::Known(v) => femtopb::EnumValue::Known(v),
+            ArbitraryBasicEnumerationEnumValue::Unknown(i) => femtopb::EnumValue::Unknown(i),
+        }
+    }
+    fn to_prost(self) -> i32 {
+        match self {
+            ArbitraryBasicEnumerationEnumValue::Known(v) => femtopb::EnumValue::Known(v).to_raw(),
+            ArbitraryBasicEnumerationEnumValue::Unknown(i) => i,
         }
     }
 }
@@ -269,11 +302,24 @@ proptest::proptest! {
     fn roundtrip_compound_types(arbitrary: ArbitraryCompound) {
         use femtopb::Message as _;
 
-        let repeated = arbitrary.repeated_message.iter().map(|a| Basic::from_arbitrary(a)).collect::<Vec<_>>();
+        let repeated_message = arbitrary
+            .repeated_message
+            .iter()
+            .map(|a| Basic::from_arbitrary(a))
+            .collect::<Vec<_>>();
+        let packed_enumeration = arbitrary
+            .packed_enumeration
+            .into_iter()
+            .map(|e| e.to_femtopb())
+            .collect::<Vec<_>>();
         let expected = Compound {
-            optional_message: arbitrary.optional_message.as_ref().map(Basic::from_arbitrary),
+            optional_message: arbitrary
+                .optional_message
+                .as_ref()
+                .map(Basic::from_arbitrary),
             required_message: Basic::from_arbitrary(&arbitrary.required_message),
-            repeated_message: femtopb::repeated::Repeated::from_slice(repeated.as_slice()),
+            repeated_message: femtopb::repeated::Repeated::from_slice(repeated_message.as_slice()),
+            packed_enumeration: femtopb::Packed::from_slice(packed_enumeration.as_slice()),
             unknown_fields: Default::default(),
         };
 
@@ -282,4 +328,21 @@ proptest::proptest! {
         let result = Compound::decode(&buf);
         proptest::prop_assert_eq!(Ok(expected), result);
     }
+}
+
+#[test]
+fn packed_enums() {
+    use femtopb::Message as _;
+
+    let expected = PackedEnum {
+        packed_enumeration: femtopb::Packed::from_slice(&[femtopb::EnumValue::Known(
+            BasicEnumeration::ZERO,
+        )]),
+        ..Default::default()
+    };
+
+    let mut buf = vec![0u8; expected.encoded_len()];
+    expected.encode(&mut buf.as_mut_slice()).unwrap();
+    let result = PackedEnum::decode(&buf);
+    assert_eq!(Ok(expected), result);
 }

@@ -238,9 +238,9 @@ where
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_packed<'a, E>(
     tag: u32,
-    _wire_type: encoding::WireType,
+    wire_type: encoding::WireType,
     msg_buf: &'a [u8],
-    _remaining: &mut &'a [u8],
+    cursor: &mut &'a [u8],
     field: &mut packed::Packed<'a, enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
 ) -> Result<(), error::DecodeError>
 where
@@ -249,6 +249,7 @@ where
     if field.is_unpopulated() {
         *field = packed::Packed::from_msg_buf(tag, msg_buf);
     }
+    encoding::skip_field(wire_type, tag, cursor)?;
     Ok(())
 }
 

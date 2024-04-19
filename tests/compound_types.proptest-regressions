@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc e5d0f1e0a92c951687efd2aa075f54a1bbc69a76496d5205a8a6303615cdd1c6 # shrinks to arbitrary = ArbitraryCompound { optional_message: None, required_message: ArbitraryBasic { int32: 0, bools: [], string: "", optional_string: None, enumeration: Known(ZERO), oneof: None }, repeated_message: [], packed_enumeration: [Known(ZERO)] }
