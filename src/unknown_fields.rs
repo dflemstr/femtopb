@@ -2,7 +2,7 @@
 
 /// A type for encoding, paradoxically, which fields are *known*, so that we know which ones to
 /// avoid when finding *unknown* fields.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct UnknownFields<'a> {
     known_tags: &'static [u32],
