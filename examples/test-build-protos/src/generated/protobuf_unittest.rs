@@ -35,18 +35,23 @@ pub struct TestAllTypes<'a> {
     #[femtopb(bytes, optional, tag = 15)]
     pub optional_bytes: ::core::option::Option<&'a [u8]>,
     #[femtopb(message, optional, tag = 18)]
-    pub optional_nested_message: ::core::option::Option<test_all_types::NestedMessage<'a>>,
+    pub optional_nested_message: ::core::option::Option<
+        test_all_types::NestedMessage<'a>,
+    >,
     #[femtopb(message, optional, tag = 19)]
     pub optional_foreign_message: ::core::option::Option<ForeignMessage<'a>>,
     #[femtopb(message, optional, tag = 20)]
-    pub optional_import_message:
-        ::core::option::Option<super::protobuf_unittest_import::ImportMessage<'a>>,
+    pub optional_import_message: ::core::option::Option<
+        super::protobuf_unittest_import::ImportMessage<'a>,
+    >,
     #[femtopb(enumeration, optional, tag = 21)]
-    pub optional_nested_enum:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<test_all_types::NestedEnum>>,
+    pub optional_nested_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<test_all_types::NestedEnum>,
+    >,
     #[femtopb(enumeration, optional, tag = 22)]
-    pub optional_foreign_enum:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub optional_foreign_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(enumeration, optional, tag = 23)]
     pub optional_import_enum: ::core::option::Option<
         ::femtopb::enumeration::EnumValue<super::protobuf_unittest_import::ImportEnum>,
@@ -57,47 +62,106 @@ pub struct TestAllTypes<'a> {
     pub optional_cord: ::core::option::Option<&'a str>,
     /// Defined in unittest_import_public.proto
     #[femtopb(message, optional, tag = 26)]
-    pub optional_public_import_message:
-        ::core::option::Option<super::protobuf_unittest_import::PublicImportMessage<'a>>,
+    pub optional_public_import_message: ::core::option::Option<
+        super::protobuf_unittest_import::PublicImportMessage<'a>,
+    >,
     #[femtopb(message, optional, tag = 27)]
     pub optional_lazy_message: ::core::option::Option<test_all_types::NestedMessage<'a>>,
     #[femtopb(message, optional, tag = 28)]
-    pub optional_unverified_lazy_message: ::core::option::Option<test_all_types::NestedMessage<'a>>,
+    pub optional_unverified_lazy_message: ::core::option::Option<
+        test_all_types::NestedMessage<'a>,
+    >,
     /// Repeated
     #[femtopb(int32, repeated, tag = 31)]
-    pub repeated_int32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int64, repeated, tag = 32)]
-    pub repeated_int64: ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub repeated_int64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(uint32, repeated, tag = 33)]
-    pub repeated_uint32: ::femtopb::repeated::Repeated<'a, u32, ::femtopb::item_encoding::UInt32>,
+    pub repeated_uint32: ::femtopb::repeated::Repeated<
+        'a,
+        u32,
+        ::femtopb::item_encoding::UInt32,
+    >,
     #[femtopb(uint64, repeated, tag = 34)]
-    pub repeated_uint64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::UInt64>,
+    pub repeated_uint64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::UInt64,
+    >,
     #[femtopb(sint32, repeated, tag = 35)]
-    pub repeated_sint32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::SInt32>,
+    pub repeated_sint32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SInt32,
+    >,
     #[femtopb(sint64, repeated, tag = 36)]
-    pub repeated_sint64: ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::SInt64>,
+    pub repeated_sint64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SInt64,
+    >,
     #[femtopb(fixed32, repeated, tag = 37)]
-    pub repeated_fixed32: ::femtopb::repeated::Repeated<'a, u32, ::femtopb::item_encoding::Fixed32>,
+    pub repeated_fixed32: ::femtopb::repeated::Repeated<
+        'a,
+        u32,
+        ::femtopb::item_encoding::Fixed32,
+    >,
     #[femtopb(fixed64, repeated, tag = 38)]
-    pub repeated_fixed64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::Fixed64>,
+    pub repeated_fixed64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::Fixed64,
+    >,
     #[femtopb(sfixed32, repeated, tag = 39)]
-    pub repeated_sfixed32:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::SFixed32>,
+    pub repeated_sfixed32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SFixed32,
+    >,
     #[femtopb(sfixed64, repeated, tag = 40)]
-    pub repeated_sfixed64:
-        ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::SFixed64>,
+    pub repeated_sfixed64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SFixed64,
+    >,
     #[femtopb(float, repeated, tag = 41)]
-    pub repeated_float: ::femtopb::repeated::Repeated<'a, f32, ::femtopb::item_encoding::Float>,
+    pub repeated_float: ::femtopb::repeated::Repeated<
+        'a,
+        f32,
+        ::femtopb::item_encoding::Float,
+    >,
     #[femtopb(double, repeated, tag = 42)]
-    pub repeated_double: ::femtopb::repeated::Repeated<'a, f64, ::femtopb::item_encoding::Double>,
+    pub repeated_double: ::femtopb::repeated::Repeated<
+        'a,
+        f64,
+        ::femtopb::item_encoding::Double,
+    >,
     #[femtopb(bool, repeated, tag = 43)]
-    pub repeated_bool: ::femtopb::repeated::Repeated<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub repeated_bool: ::femtopb::repeated::Repeated<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(string, repeated, tag = 44)]
-    pub repeated_string:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(bytes, repeated, tag = 45)]
-    pub repeated_bytes:
-        ::femtopb::repeated::Repeated<'a, &'a [u8], ::femtopb::item_encoding::Bytes>,
+    pub repeated_bytes: ::femtopb::repeated::Repeated<
+        'a,
+        &'a [u8],
+        ::femtopb::item_encoding::Bytes,
+    >,
     #[femtopb(message, repeated, tag = 48)]
     pub repeated_nested_message: ::femtopb::repeated::Repeated<
         'a,
@@ -114,7 +178,10 @@ pub struct TestAllTypes<'a> {
     pub repeated_import_message: ::femtopb::repeated::Repeated<
         'a,
         super::protobuf_unittest_import::ImportMessage<'a>,
-        ::femtopb::item_encoding::Message<'a, super::protobuf_unittest_import::ImportMessage<'a>>,
+        ::femtopb::item_encoding::Message<
+            'a,
+            super::protobuf_unittest_import::ImportMessage<'a>,
+        >,
     >,
     #[femtopb(enumeration, repeated, tag = 51)]
     pub repeated_nested_enum: ::femtopb::repeated::Repeated<
@@ -135,10 +202,17 @@ pub struct TestAllTypes<'a> {
         ::femtopb::item_encoding::Enum<super::protobuf_unittest_import::ImportEnum>,
     >,
     #[femtopb(string, repeated, tag = 54)]
-    pub repeated_string_piece:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_piece: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 55)]
-    pub repeated_cord: ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_cord: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(message, repeated, tag = 57)]
     pub repeated_lazy_message: ::femtopb::repeated::Repeated<
         'a,
@@ -182,11 +256,13 @@ pub struct TestAllTypes<'a> {
         tag = 81,
         default = test_all_types::NestedEnum::Bar
     )]
-    pub default_nested_enum:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<test_all_types::NestedEnum>>,
+    pub default_nested_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<test_all_types::NestedEnum>,
+    >,
     #[femtopb(enumeration, optional, tag = 82, default = ForeignEnum::ForeignBar)]
-    pub default_foreign_enum:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub default_foreign_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(
         enumeration,
         optional,
@@ -219,7 +295,17 @@ pub mod test_all_types {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -282,7 +368,9 @@ pub mod test_all_types {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct NestedTestAllTypes<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
-    pub child: ::core::option::Option<::femtopb::deferred::Deferred<'a, NestedTestAllTypes<'a>>>,
+    pub child: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, NestedTestAllTypes<'a>>,
+    >,
     #[femtopb(message, optional, tag = 2)]
     pub payload: ::core::option::Option<TestAllTypes<'a>>,
     #[femtopb(message, repeated, tag = 3)]
@@ -292,8 +380,9 @@ pub struct NestedTestAllTypes<'a> {
         ::femtopb::item_encoding::Message<'a, NestedTestAllTypes<'a>>,
     >,
     #[femtopb(message, optional, deferred, tag = 4)]
-    pub lazy_child:
-        ::core::option::Option<::femtopb::deferred::Deferred<'a, NestedTestAllTypes<'a>>>,
+    pub lazy_child: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, NestedTestAllTypes<'a>>,
+    >,
     #[femtopb(message, optional, tag = 5)]
     pub eager_child: ::core::option::Option<TestAllTypes<'a>>,
     #[femtopb(unknown_fields)]
@@ -307,13 +396,18 @@ pub struct TestDeprecatedFields<'a> {
     pub deprecated_int32: ::core::option::Option<i32>,
     #[deprecated]
     #[femtopb(string, repeated, tag = 4)]
-    pub deprecated_repeated_string:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub deprecated_repeated_string: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[deprecated]
     #[femtopb(message, optional, tag = 3)]
     pub deprecated_message: ::core::option::Option<test_all_types::NestedMessage<'a>>,
     #[femtopb(message, optional, deferred, tag = 5)]
-    pub nested: ::core::option::Option<::femtopb::deferred::Deferred<'a, TestDeprecatedFields<'a>>>,
+    pub nested: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, TestDeprecatedFields<'a>>,
+    >,
     #[femtopb(oneof, tags = [2])]
     pub oneof_fields: ::core::option::Option<test_deprecated_fields::OneofFields<'a>>,
     #[femtopb(unknown_fields)]
@@ -381,8 +475,9 @@ pub struct TestGroup<'a> {
     ///                              // 89 - 17 = 72 is a multiple of 8.
     ///   }
     #[femtopb(enumeration, optional, tag = 22)]
-    pub optional_foreign_enum:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub optional_foreign_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -420,8 +515,9 @@ pub struct TestChildExtensionData<'a> {
     #[femtopb(string, optional, tag = 2)]
     pub b: ::core::option::Option<&'a str>,
     #[femtopb(message, optional, tag = 3)]
-    pub optional_extension:
-        ::core::option::Option<test_child_extension_data::NestedTestAllExtensionsData<'a>>,
+    pub optional_extension: ::core::option::Option<
+        test_child_extension_data::NestedTestAllExtensionsData<'a>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -431,8 +527,9 @@ pub mod test_child_extension_data {
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedTestAllExtensionsData<'a> {
         #[femtopb(message, optional, tag = 409707008)]
-        pub dynamic:
-            ::core::option::Option<nested_test_all_extensions_data::NestedDynamicExtensions<'a>>,
+        pub dynamic: ::core::option::Option<
+            nested_test_all_extensions_data::NestedDynamicExtensions<'a>,
+        >,
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
@@ -490,7 +587,9 @@ pub struct TestRequiredEnum<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnumNoMask<'a> {
     #[femtopb(enumeration, required, tag = 1)]
-    pub required_enum: ::femtopb::enumeration::EnumValue<test_required_enum_no_mask::NestedEnum>,
+    pub required_enum: ::femtopb::enumeration::EnumValue<
+        test_required_enum_no_mask::NestedEnum,
+    >,
     /// A dummy optional field.
     #[femtopb(int32, optional, tag = 2)]
     pub a: ::core::option::Option<i32>,
@@ -499,7 +598,17 @@ pub struct TestRequiredEnumNoMask<'a> {
 }
 /// Nested message and enum types in `TestRequiredEnumNoMask`.
 pub mod test_required_enum_no_mask {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -541,11 +650,15 @@ pub struct TestRequiredEnumMulti<'a> {
     /// Intentionally placed in descending field number to force sorting in closed
     /// enum verification.
     #[femtopb(enumeration, required, tag = 4)]
-    pub required_enum_4: ::femtopb::enumeration::EnumValue<test_required_enum_multi::NestedEnum>,
+    pub required_enum_4: ::femtopb::enumeration::EnumValue<
+        test_required_enum_multi::NestedEnum,
+    >,
     #[femtopb(int32, optional, tag = 3)]
     pub a_3: ::core::option::Option<i32>,
     #[femtopb(enumeration, required, tag = 2)]
-    pub required_enum_2: ::femtopb::enumeration::EnumValue<test_required_enum_multi::NestedEnum>,
+    pub required_enum_2: ::femtopb::enumeration::EnumValue<
+        test_required_enum_multi::NestedEnum,
+    >,
     #[femtopb(enumeration, required, tag = 1)]
     pub required_enum_1: ::femtopb::enumeration::EnumValue<ForeignEnum>,
     #[femtopb(unknown_fields)]
@@ -553,7 +666,17 @@ pub struct TestRequiredEnumMulti<'a> {
 }
 /// Nested message and enum types in `TestRequiredEnumMulti`.
 pub mod test_required_enum_multi {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -599,14 +722,19 @@ pub struct TestRequiredNoMaskMulti<'a> {
     #[femtopb(fixed32, required, tag = 70)]
     pub required_fixed32_70: u32,
     #[femtopb(enumeration, required, tag = 64)]
-    pub required_enum_64:
-        ::femtopb::enumeration::EnumValue<test_required_no_mask_multi::NestedEnum>,
+    pub required_enum_64: ::femtopb::enumeration::EnumValue<
+        test_required_no_mask_multi::NestedEnum,
+    >,
     #[femtopb(enumeration, required, tag = 4)]
-    pub required_enum_4: ::femtopb::enumeration::EnumValue<test_required_no_mask_multi::NestedEnum>,
+    pub required_enum_4: ::femtopb::enumeration::EnumValue<
+        test_required_no_mask_multi::NestedEnum,
+    >,
     #[femtopb(int32, optional, tag = 3)]
     pub a_3: ::core::option::Option<i32>,
     #[femtopb(enumeration, required, tag = 2)]
-    pub required_enum_2: ::femtopb::enumeration::EnumValue<test_required_no_mask_multi::NestedEnum>,
+    pub required_enum_2: ::femtopb::enumeration::EnumValue<
+        test_required_no_mask_multi::NestedEnum,
+    >,
     #[femtopb(enumeration, required, tag = 1)]
     pub required_enum_1: ::femtopb::enumeration::EnumValue<ForeignEnum>,
     #[femtopb(unknown_fields)]
@@ -614,7 +742,17 @@ pub struct TestRequiredNoMaskMulti<'a> {
 }
 /// Nested message and enum types in `TestRequiredNoMaskMulti`.
 pub mod test_required_no_mask_multi {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -770,8 +908,9 @@ pub struct TestRequiredMessage<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedRequiredForeign<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
-    pub child:
-        ::core::option::Option<::femtopb::deferred::Deferred<'a, TestNestedRequiredForeign<'a>>>,
+    pub child: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, TestNestedRequiredForeign<'a>>,
+    >,
     #[femtopb(message, optional, tag = 2)]
     pub payload: ::core::option::Option<TestRequiredForeign<'a>>,
     #[femtopb(int32, optional, tag = 3)]
@@ -864,7 +1003,9 @@ pub struct TestReallyLargeTagNumber<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRecursiveMessage<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
-    pub a: ::core::option::Option<::femtopb::deferred::Deferred<'a, TestRecursiveMessage<'a>>>,
+    pub a: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, TestRecursiveMessage<'a>>,
+    >,
     #[femtopb(int32, optional, tag = 2)]
     pub i: ::core::option::Option<i32>,
     #[femtopb(unknown_fields)]
@@ -882,7 +1023,9 @@ pub struct TestMutualRecursionA<'a> {
     ///     optional TestAllTypes payload = 6;
     ///   }
     #[femtopb(message, optional, deferred, tag = 1)]
-    pub bb: ::core::option::Option<::femtopb::deferred::Deferred<'a, TestMutualRecursionB<'a>>>,
+    pub bb: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, TestMutualRecursionB<'a>>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -901,7 +1044,9 @@ pub mod test_mutual_recursion_a {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMutualRecursionB<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
-    pub a: ::core::option::Option<::femtopb::deferred::Deferred<'a, TestMutualRecursionA<'a>>>,
+    pub a: ::core::option::Option<
+        ::femtopb::deferred::Deferred<'a, TestMutualRecursionA<'a>>,
+    >,
     #[femtopb(int32, optional, tag = 2)]
     pub optional_int32: ::core::option::Option<i32>,
     #[femtopb(unknown_fields)]
@@ -999,8 +1144,9 @@ pub mod test_eager_maybe_lazy {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedMessageHasBits<'a> {
     #[femtopb(message, optional, tag = 1)]
-    pub optional_nested_message:
-        ::core::option::Option<test_nested_message_has_bits::NestedMessage<'a>>,
+    pub optional_nested_message: ::core::option::Option<
+        test_nested_message_has_bits::NestedMessage<'a>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1010,8 +1156,11 @@ pub mod test_nested_message_has_bits {
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(int32, repeated, tag = 1)]
-        pub nestedmessage_repeated_int32:
-            ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+        pub nestedmessage_repeated_int32: ::femtopb::repeated::Repeated<
+            'a,
+            i32,
+            ::femtopb::item_encoding::Int32,
+        >,
         #[femtopb(message, repeated, tag = 2)]
         pub nestedmessage_repeated_foreignmessage: ::femtopb::repeated::Repeated<
             'a,
@@ -1032,7 +1181,9 @@ pub struct TestCamelCaseFieldNames<'a> {
     #[femtopb(string, optional, tag = 2)]
     pub string_field: ::core::option::Option<&'a str>,
     #[femtopb(enumeration, optional, tag = 3)]
-    pub enum_field: ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub enum_field: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(message, optional, tag = 4)]
     pub message_field: ::core::option::Option<ForeignMessage<'a>>,
     #[femtopb(string, optional, tag = 5)]
@@ -1040,11 +1191,17 @@ pub struct TestCamelCaseFieldNames<'a> {
     #[femtopb(string, optional, tag = 6)]
     pub cord_field: ::core::option::Option<&'a str>,
     #[femtopb(int32, repeated, tag = 7)]
-    pub repeated_primitive_field:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_primitive_field: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(string, repeated, tag = 8)]
-    pub repeated_string_field:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_field: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(enumeration, repeated, tag = 9)]
     pub repeated_enum_field: ::femtopb::repeated::Repeated<
         'a,
@@ -1058,11 +1215,17 @@ pub struct TestCamelCaseFieldNames<'a> {
         ::femtopb::item_encoding::Message<'a, ForeignMessage<'a>>,
     >,
     #[femtopb(string, repeated, tag = 11)]
-    pub repeated_string_piece_field:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_piece_field: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 12)]
-    pub repeated_cord_field:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_cord_field: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1078,7 +1241,9 @@ pub struct TestFieldOrderings<'a> {
     #[femtopb(float, optional, tag = 101)]
     pub my_float: ::core::option::Option<f32>,
     #[femtopb(message, optional, tag = 200)]
-    pub optional_nested_message: ::core::option::Option<test_field_orderings::NestedMessage<'a>>,
+    pub optional_nested_message: ::core::option::Option<
+        test_field_orderings::NestedMessage<'a>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1206,7 +1371,9 @@ pub struct TestExtremeDefaultValues<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct SparseEnumMessage<'a> {
     #[femtopb(enumeration, optional, tag = 1)]
-    pub sparse_enum: ::core::option::Option<::femtopb::enumeration::EnumValue<TestSparseEnum>>,
+    pub sparse_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<TestSparseEnum>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1223,7 +1390,11 @@ pub struct OneString<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreString<'a> {
     #[femtopb(string, repeated, tag = 1)]
-    pub data: ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub data: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1239,7 +1410,11 @@ pub struct OneBytes<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreBytes<'a> {
     #[femtopb(bytes, repeated, tag = 1)]
-    pub data: ::femtopb::repeated::Repeated<'a, &'a [u8], ::femtopb::item_encoding::Bytes>,
+    pub data: ::femtopb::repeated::Repeated<
+        'a,
+        &'a [u8],
+        ::femtopb::item_encoding::Bytes,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1421,13 +1596,29 @@ pub mod test_oneof2 {
         #[femtopb(int64, optional, tag = 1)]
         pub moo_int: ::core::option::Option<i64>,
         #[femtopb(int32, repeated, tag = 2)]
-        pub corge_int: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+        pub corge_int: ::femtopb::repeated::Repeated<
+            'a,
+            i32,
+            ::femtopb::item_encoding::Int32,
+        >,
         #[femtopb(message, optional, deferred, tag = 3)]
-        pub child: ::core::option::Option<::femtopb::deferred::Deferred<'a, NestedMessage<'a>>>,
+        pub child: ::core::option::Option<
+            ::femtopb::deferred::Deferred<'a, NestedMessage<'a>>,
+        >,
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -1553,29 +1744,77 @@ pub mod test_required_oneof {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedTypes<'a> {
     #[femtopb(int32, packed, tag = 90)]
-    pub packed_int32: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub packed_int32: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int64, packed, tag = 91)]
-    pub packed_int64: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub packed_int64: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(uint32, packed, tag = 92)]
-    pub packed_uint32: ::femtopb::packed::Packed<'a, u32, ::femtopb::item_encoding::UInt32>,
+    pub packed_uint32: ::femtopb::packed::Packed<
+        'a,
+        u32,
+        ::femtopb::item_encoding::UInt32,
+    >,
     #[femtopb(uint64, packed, tag = 93)]
-    pub packed_uint64: ::femtopb::packed::Packed<'a, u64, ::femtopb::item_encoding::UInt64>,
+    pub packed_uint64: ::femtopb::packed::Packed<
+        'a,
+        u64,
+        ::femtopb::item_encoding::UInt64,
+    >,
     #[femtopb(sint32, packed, tag = 94)]
-    pub packed_sint32: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::SInt32>,
+    pub packed_sint32: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SInt32,
+    >,
     #[femtopb(sint64, packed, tag = 95)]
-    pub packed_sint64: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::SInt64>,
+    pub packed_sint64: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SInt64,
+    >,
     #[femtopb(fixed32, packed, tag = 96)]
-    pub packed_fixed32: ::femtopb::packed::Packed<'a, u32, ::femtopb::item_encoding::Fixed32>,
+    pub packed_fixed32: ::femtopb::packed::Packed<
+        'a,
+        u32,
+        ::femtopb::item_encoding::Fixed32,
+    >,
     #[femtopb(fixed64, packed, tag = 97)]
-    pub packed_fixed64: ::femtopb::packed::Packed<'a, u64, ::femtopb::item_encoding::Fixed64>,
+    pub packed_fixed64: ::femtopb::packed::Packed<
+        'a,
+        u64,
+        ::femtopb::item_encoding::Fixed64,
+    >,
     #[femtopb(sfixed32, packed, tag = 98)]
-    pub packed_sfixed32: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::SFixed32>,
+    pub packed_sfixed32: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SFixed32,
+    >,
     #[femtopb(sfixed64, packed, tag = 99)]
-    pub packed_sfixed64: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::SFixed64>,
+    pub packed_sfixed64: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SFixed64,
+    >,
     #[femtopb(float, packed, tag = 100)]
-    pub packed_float: ::femtopb::packed::Packed<'a, f32, ::femtopb::item_encoding::Float>,
+    pub packed_float: ::femtopb::packed::Packed<
+        'a,
+        f32,
+        ::femtopb::item_encoding::Float,
+    >,
     #[femtopb(double, packed, tag = 101)]
-    pub packed_double: ::femtopb::packed::Packed<'a, f64, ::femtopb::item_encoding::Double>,
+    pub packed_double: ::femtopb::packed::Packed<
+        'a,
+        f64,
+        ::femtopb::item_encoding::Double,
+    >,
     #[femtopb(bool, packed, tag = 102)]
     pub packed_bool: ::femtopb::packed::Packed<'a, bool, ::femtopb::item_encoding::Bool>,
     #[femtopb(enumeration, packed, tag = 103)]
@@ -1593,33 +1832,83 @@ pub struct TestPackedTypes<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestUnpackedTypes<'a> {
     #[femtopb(int32, repeated, tag = 90)]
-    pub unpacked_int32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub unpacked_int32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int64, repeated, tag = 91)]
-    pub unpacked_int64: ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub unpacked_int64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(uint32, repeated, tag = 92)]
-    pub unpacked_uint32: ::femtopb::repeated::Repeated<'a, u32, ::femtopb::item_encoding::UInt32>,
+    pub unpacked_uint32: ::femtopb::repeated::Repeated<
+        'a,
+        u32,
+        ::femtopb::item_encoding::UInt32,
+    >,
     #[femtopb(uint64, repeated, tag = 93)]
-    pub unpacked_uint64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::UInt64>,
+    pub unpacked_uint64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::UInt64,
+    >,
     #[femtopb(sint32, repeated, tag = 94)]
-    pub unpacked_sint32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::SInt32>,
+    pub unpacked_sint32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SInt32,
+    >,
     #[femtopb(sint64, repeated, tag = 95)]
-    pub unpacked_sint64: ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::SInt64>,
+    pub unpacked_sint64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SInt64,
+    >,
     #[femtopb(fixed32, repeated, tag = 96)]
-    pub unpacked_fixed32: ::femtopb::repeated::Repeated<'a, u32, ::femtopb::item_encoding::Fixed32>,
+    pub unpacked_fixed32: ::femtopb::repeated::Repeated<
+        'a,
+        u32,
+        ::femtopb::item_encoding::Fixed32,
+    >,
     #[femtopb(fixed64, repeated, tag = 97)]
-    pub unpacked_fixed64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::Fixed64>,
+    pub unpacked_fixed64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::Fixed64,
+    >,
     #[femtopb(sfixed32, repeated, tag = 98)]
-    pub unpacked_sfixed32:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::SFixed32>,
+    pub unpacked_sfixed32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SFixed32,
+    >,
     #[femtopb(sfixed64, repeated, tag = 99)]
-    pub unpacked_sfixed64:
-        ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::SFixed64>,
+    pub unpacked_sfixed64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::SFixed64,
+    >,
     #[femtopb(float, repeated, tag = 100)]
-    pub unpacked_float: ::femtopb::repeated::Repeated<'a, f32, ::femtopb::item_encoding::Float>,
+    pub unpacked_float: ::femtopb::repeated::Repeated<
+        'a,
+        f32,
+        ::femtopb::item_encoding::Float,
+    >,
     #[femtopb(double, repeated, tag = 101)]
-    pub unpacked_double: ::femtopb::repeated::Repeated<'a, f64, ::femtopb::item_encoding::Double>,
+    pub unpacked_double: ::femtopb::repeated::Repeated<
+        'a,
+        f64,
+        ::femtopb::item_encoding::Double,
+    >,
     #[femtopb(bool, repeated, tag = 102)]
-    pub unpacked_bool: ::femtopb::repeated::Repeated<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub unpacked_bool: ::femtopb::repeated::Repeated<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(enumeration, repeated, tag = 103)]
     pub unpacked_enum: ::femtopb::repeated::Repeated<
         'a,
@@ -1650,7 +1939,9 @@ pub struct TestDynamicExtensions<'a> {
     #[femtopb(fixed32, optional, tag = 2000)]
     pub scalar_extension: ::core::option::Option<u32>,
     #[femtopb(enumeration, optional, tag = 2001)]
-    pub enum_extension: ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub enum_extension: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(enumeration, optional, tag = 2002)]
     pub dynamic_enum_extension: ::core::option::Option<
         ::femtopb::enumeration::EnumValue<test_dynamic_extensions::DynamicEnumType>,
@@ -1658,13 +1949,21 @@ pub struct TestDynamicExtensions<'a> {
     #[femtopb(message, optional, tag = 2003)]
     pub message_extension: ::core::option::Option<ForeignMessage<'a>>,
     #[femtopb(message, optional, tag = 2004)]
-    pub dynamic_message_extension:
-        ::core::option::Option<test_dynamic_extensions::DynamicMessageType<'a>>,
+    pub dynamic_message_extension: ::core::option::Option<
+        test_dynamic_extensions::DynamicMessageType<'a>,
+    >,
     #[femtopb(string, repeated, tag = 2005)]
-    pub repeated_extension:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_extension: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(sint32, packed, tag = 2006)]
-    pub packed_extension: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::SInt32>,
+    pub packed_extension: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::SInt32,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1678,7 +1977,17 @@ pub mod test_dynamic_extensions {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum DynamicEnumType {
@@ -1714,17 +2023,29 @@ pub mod test_dynamic_extensions {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRepeatedString<'a> {
     #[femtopb(string, repeated, tag = 1)]
-    pub repeated_string1:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string1: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 2)]
-    pub repeated_string2:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string2: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(bytes, repeated, tag = 11)]
-    pub repeated_bytes11:
-        ::femtopb::repeated::Repeated<'a, &'a [u8], ::femtopb::item_encoding::Bytes>,
+    pub repeated_bytes11: ::femtopb::repeated::Repeated<
+        'a,
+        &'a [u8],
+        ::femtopb::item_encoding::Bytes,
+    >,
     #[femtopb(bytes, repeated, tag = 12)]
-    pub repeated_bytes12:
-        ::femtopb::repeated::Repeated<'a, &'a [u8], ::femtopb::item_encoding::Bytes>,
+    pub repeated_bytes12: ::femtopb::repeated::Repeated<
+        'a,
+        &'a [u8],
+        ::femtopb::item_encoding::Bytes,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1735,20 +2056,44 @@ pub struct TestRepeatedScalarDifferentTagSizes<'a> {
     /// used in order to get a tag of the right size; all of the repeated fields
     /// in TestAllTypes didn't trigger the check.
     #[femtopb(fixed32, repeated, tag = 12)]
-    pub repeated_fixed32: ::femtopb::repeated::Repeated<'a, u32, ::femtopb::item_encoding::Fixed32>,
+    pub repeated_fixed32: ::femtopb::repeated::Repeated<
+        'a,
+        u32,
+        ::femtopb::item_encoding::Fixed32,
+    >,
     /// Check for a varint type, just for good measure.
     #[femtopb(int32, repeated, tag = 13)]
-    pub repeated_int32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     /// These have two-byte tags.
     #[femtopb(fixed64, repeated, tag = 2046)]
-    pub repeated_fixed64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::Fixed64>,
+    pub repeated_fixed64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::Fixed64,
+    >,
     #[femtopb(int64, repeated, tag = 2047)]
-    pub repeated_int64: ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub repeated_int64: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     /// Three byte tags.
     #[femtopb(float, repeated, tag = 262142)]
-    pub repeated_float: ::femtopb::repeated::Repeated<'a, f32, ::femtopb::item_encoding::Float>,
+    pub repeated_float: ::femtopb::repeated::Repeated<
+        'a,
+        f32,
+        ::femtopb::item_encoding::Float,
+    >,
     #[femtopb(uint64, repeated, tag = 262143)]
-    pub repeated_uint64: ::femtopb::repeated::Repeated<'a, u64, ::femtopb::item_encoding::UInt64>,
+    pub repeated_uint64: ::femtopb::repeated::Repeated<
+        'a,
+        u64,
+        ::femtopb::item_encoding::UInt64,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -1924,11 +2269,21 @@ pub struct TestHugeFieldNumbers<'a> {
     #[femtopb(int32, optional, tag = 536870001)]
     pub fixed_32: ::core::option::Option<i32>,
     #[femtopb(int32, repeated, tag = 536870002)]
-    pub repeated_int32: ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, packed, tag = 536870003)]
-    pub packed_int32: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub packed_int32: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(enumeration, optional, tag = 536870004)]
-    pub optional_enum: ::core::option::Option<::femtopb::enumeration::EnumValue<ForeignEnum>>,
+    pub optional_enum: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<ForeignEnum>,
+    >,
     #[femtopb(string, optional, tag = 536870005)]
     pub optional_string: ::core::option::Option<&'a str>,
     #[femtopb(bytes, optional, tag = 536870006)]
@@ -2263,7 +2618,9 @@ pub struct TestVerifyUint32BigFieldNumber<'a> {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyBigFieldNumberUint32<'a> {
     #[femtopb(message, optional, tag = 1)]
-    pub optional_nested: ::core::option::Option<test_verify_big_field_number_uint32::Nested<'a>>,
+    pub optional_nested: ::core::option::Option<
+        test_verify_big_field_number_uint32::Nested<'a>,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -2289,7 +2646,9 @@ pub mod test_verify_big_field_number_uint32 {
         #[femtopb(uint32, optional, tag = 64)]
         pub optional_uint32_64: ::core::option::Option<u32>,
         #[femtopb(message, optional, deferred, tag = 9)]
-        pub optional_nested: ::core::option::Option<::femtopb::deferred::Deferred<'a, Nested<'a>>>,
+        pub optional_nested: ::core::option::Option<
+            ::femtopb::deferred::Deferred<'a, Nested<'a>>,
+        >,
         #[femtopb(message, repeated, tag = 10)]
         pub repeated_nested: ::femtopb::repeated::Repeated<
             'a,
@@ -2306,14 +2665,17 @@ pub mod test_verify_big_field_number_uint32 {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct EnumParseTester<'a> {
     #[femtopb(enumeration, optional, tag = 1)]
-    pub optional_seq_small_0_lowfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>>,
+    pub optional_seq_small_0_lowfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>,
+    >,
     #[femtopb(enumeration, optional, tag = 1001)]
-    pub optional_seq_small_0_midfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>>,
+    pub optional_seq_small_0_midfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>,
+    >,
     #[femtopb(enumeration, optional, tag = 1000001)]
-    pub optional_seq_small_0_hifield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>>,
+    pub optional_seq_small_0_hifield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall0>,
+    >,
     #[femtopb(enumeration, repeated, tag = 2)]
     pub repeated_seq_small_0_lowfield: ::femtopb::repeated::Repeated<
         'a,
@@ -2351,14 +2713,17 @@ pub struct EnumParseTester<'a> {
         ::femtopb::item_encoding::Enum<enum_parse_tester::SeqSmall0>,
     >,
     #[femtopb(enumeration, optional, tag = 4)]
-    pub optional_seq_small_1_lowfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>>,
+    pub optional_seq_small_1_lowfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>,
+    >,
     #[femtopb(enumeration, optional, tag = 1004)]
-    pub optional_seq_small_1_midfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>>,
+    pub optional_seq_small_1_midfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>,
+    >,
     #[femtopb(enumeration, optional, tag = 1000004)]
-    pub optional_seq_small_1_hifield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>>,
+    pub optional_seq_small_1_hifield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqSmall1>,
+    >,
     #[femtopb(enumeration, repeated, tag = 5)]
     pub repeated_seq_small_1_lowfield: ::femtopb::repeated::Repeated<
         'a,
@@ -2396,14 +2761,17 @@ pub struct EnumParseTester<'a> {
         ::femtopb::item_encoding::Enum<enum_parse_tester::SeqSmall1>,
     >,
     #[femtopb(enumeration, optional, tag = 7)]
-    pub optional_seq_large_lowfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>>,
+    pub optional_seq_large_lowfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>,
+    >,
     #[femtopb(enumeration, optional, tag = 1007)]
-    pub optional_seq_large_midfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>>,
+    pub optional_seq_large_midfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>,
+    >,
     #[femtopb(enumeration, optional, tag = 1000007)]
-    pub optional_seq_large_hifield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>>,
+    pub optional_seq_large_hifield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::SeqLarge>,
+    >,
     #[femtopb(enumeration, repeated, tag = 8)]
     pub repeated_seq_large_lowfield: ::femtopb::repeated::Repeated<
         'a,
@@ -2441,14 +2809,17 @@ pub struct EnumParseTester<'a> {
         ::femtopb::item_encoding::Enum<enum_parse_tester::SeqLarge>,
     >,
     #[femtopb(enumeration, optional, tag = 10)]
-    pub optional_arbitrary_lowfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>>,
+    pub optional_arbitrary_lowfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>,
+    >,
     #[femtopb(enumeration, optional, tag = 1010)]
-    pub optional_arbitrary_midfield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>>,
+    pub optional_arbitrary_midfield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>,
+    >,
     #[femtopb(enumeration, optional, tag = 1000010)]
-    pub optional_arbitrary_hifield:
-        ::core::option::Option<::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>>,
+    pub optional_arbitrary_hifield: ::core::option::Option<
+        ::femtopb::enumeration::EnumValue<enum_parse_tester::Arbitrary>,
+    >,
     #[femtopb(enumeration, repeated, tag = 11)]
     pub repeated_arbitrary_lowfield: ::femtopb::repeated::Repeated<
         'a,
@@ -2493,7 +2864,17 @@ pub struct EnumParseTester<'a> {
 }
 /// Nested message and enum types in `EnumParseTester`.
 pub mod enum_parse_tester {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum SeqSmall0 {
@@ -2524,7 +2905,17 @@ pub mod enum_parse_tester {
             }
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum SeqSmall1 {
@@ -2555,7 +2946,17 @@ pub mod enum_parse_tester {
             }
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum SeqLarge {
@@ -2682,7 +3083,17 @@ pub mod enum_parse_tester {
             }
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum Arbitrary {
@@ -2735,20 +3146,41 @@ pub struct BoolParseTester<'a> {
     #[femtopb(bool, optional, tag = 1000001)]
     pub optional_bool_hifield: ::core::option::Option<bool>,
     #[femtopb(bool, repeated, tag = 2)]
-    pub repeated_bool_lowfield:
-        ::femtopb::repeated::Repeated<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub repeated_bool_lowfield: ::femtopb::repeated::Repeated<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(bool, repeated, tag = 1002)]
-    pub repeated_bool_midfield:
-        ::femtopb::repeated::Repeated<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub repeated_bool_midfield: ::femtopb::repeated::Repeated<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(bool, repeated, tag = 1000002)]
-    pub repeated_bool_hifield:
-        ::femtopb::repeated::Repeated<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub repeated_bool_hifield: ::femtopb::repeated::Repeated<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(bool, packed, tag = 3)]
-    pub packed_bool_lowfield: ::femtopb::packed::Packed<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub packed_bool_lowfield: ::femtopb::packed::Packed<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(bool, packed, tag = 1003)]
-    pub packed_bool_midfield: ::femtopb::packed::Packed<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub packed_bool_midfield: ::femtopb::packed::Packed<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     #[femtopb(bool, packed, tag = 1000003)]
-    pub packed_bool_hifield: ::femtopb::packed::Packed<'a, bool, ::femtopb::item_encoding::Bool>,
+    pub packed_bool_hifield: ::femtopb::packed::Packed<
+        'a,
+        bool,
+        ::femtopb::item_encoding::Bool,
+    >,
     /// An arbitrary field we can append to to break the runs of repeated fields.
     #[femtopb(int32, optional, tag = 99)]
     pub other_field: ::core::option::Option<i32>,
@@ -2765,20 +3197,41 @@ pub struct Int32ParseTester<'a> {
     #[femtopb(int32, optional, tag = 1000001)]
     pub optional_int32_hifield: ::core::option::Option<i32>,
     #[femtopb(int32, repeated, tag = 2)]
-    pub repeated_int32_lowfield:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32_lowfield: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, repeated, tag = 1002)]
-    pub repeated_int32_midfield:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32_midfield: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, repeated, tag = 1000002)]
-    pub repeated_int32_hifield:
-        ::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub repeated_int32_hifield: ::femtopb::repeated::Repeated<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, packed, tag = 3)]
-    pub packed_int32_lowfield: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub packed_int32_lowfield: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, packed, tag = 1003)]
-    pub packed_int32_midfield: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub packed_int32_midfield: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     #[femtopb(int32, packed, tag = 1000003)]
-    pub packed_int32_hifield: ::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>,
+    pub packed_int32_hifield: ::femtopb::packed::Packed<
+        'a,
+        i32,
+        ::femtopb::item_encoding::Int32,
+    >,
     /// An arbitrary field we can append to to break the runs of repeated fields.
     #[femtopb(int32, optional, tag = 99)]
     pub other_field: ::core::option::Option<i32>,
@@ -2795,20 +3248,41 @@ pub struct Int64ParseTester<'a> {
     #[femtopb(int64, optional, tag = 1000001)]
     pub optional_int64_hifield: ::core::option::Option<i64>,
     #[femtopb(int64, repeated, tag = 2)]
-    pub repeated_int64_lowfield:
-        ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub repeated_int64_lowfield: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(int64, repeated, tag = 1002)]
-    pub repeated_int64_midfield:
-        ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub repeated_int64_midfield: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(int64, repeated, tag = 1000002)]
-    pub repeated_int64_hifield:
-        ::femtopb::repeated::Repeated<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub repeated_int64_hifield: ::femtopb::repeated::Repeated<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(int64, packed, tag = 3)]
-    pub packed_int64_lowfield: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub packed_int64_lowfield: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(int64, packed, tag = 1003)]
-    pub packed_int64_midfield: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub packed_int64_midfield: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     #[femtopb(int64, packed, tag = 1000003)]
-    pub packed_int64_hifield: ::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::Int64>,
+    pub packed_int64_hifield: ::femtopb::packed::Packed<
+        'a,
+        i64,
+        ::femtopb::item_encoding::Int64,
+    >,
     /// An arbitrary field we can append to to break the runs of repeated fields.
     #[femtopb(int32, optional, tag = 99)]
     pub other_field: ::core::option::Option<i32>,
@@ -2846,14 +3320,23 @@ pub struct StringParseTester<'a> {
     #[femtopb(string, optional, tag = 1000001)]
     pub optional_string_hifield: ::core::option::Option<&'a str>,
     #[femtopb(string, repeated, tag = 2)]
-    pub repeated_string_lowfield:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_lowfield: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 1002)]
-    pub repeated_string_midfield:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_midfield: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 1000002)]
-    pub repeated_string_hifield:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_hifield: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
@@ -2885,15 +3368,25 @@ pub struct RedactedFields<'a> {
     #[femtopb(string, optional, tag = 2)]
     pub optional_unredacted_string: ::core::option::Option<&'a str>,
     #[femtopb(string, repeated, tag = 3)]
-    pub repeated_redacted_string:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_redacted_string: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 4)]
-    pub repeated_unredacted_string:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_unredacted_string: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(message, optional, tag = 5)]
-    pub optional_redacted_message: ::core::option::Option<TestNestedMessageRedaction<'a>>,
+    pub optional_redacted_message: ::core::option::Option<
+        TestNestedMessageRedaction<'a>,
+    >,
     #[femtopb(message, optional, tag = 6)]
-    pub optional_unredacted_message: ::core::option::Option<TestNestedMessageRedaction<'a>>,
+    pub optional_unredacted_message: ::core::option::Option<
+        TestNestedMessageRedaction<'a>,
+    >,
     #[femtopb(message, repeated, tag = 7)]
     pub repeated_redacted_message: ::femtopb::repeated::Repeated<
         'a,
@@ -2935,7 +3428,17 @@ pub struct TestPackedEnumSmallRange<'a> {
 }
 /// Nested message and enum types in `TestPackedEnumSmallRange`.
 pub mod test_packed_enum_small_range {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum NestedEnum {
@@ -2978,7 +3481,17 @@ pub struct EnumsForBenchmark<'a> {
 }
 /// Nested message and enum types in `EnumsForBenchmark`.
 pub mod enums_for_benchmark {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum Flat {
@@ -3049,7 +3562,17 @@ pub mod enums_for_benchmark {
         }
     }
     /// Has a few holes, bitmap can be used.
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum AlmostFlat {
@@ -3119,7 +3642,17 @@ pub mod enums_for_benchmark {
             }
         }
     }
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::femtopb::Enumeration
+    )]
     #[repr(i32)]
     #[derive(Default)]
     pub enum Sparse {
@@ -3194,105 +3727,211 @@ pub mod enums_for_benchmark {
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMessageWithManyRepeatedPtrFields<'a> {
     #[femtopb(string, repeated, tag = 1)]
-    pub repeated_string_1:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_1: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 2)]
-    pub repeated_string_2:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_2: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 3)]
-    pub repeated_string_3:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_3: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 4)]
-    pub repeated_string_4:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_4: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 5)]
-    pub repeated_string_5:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_5: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 6)]
-    pub repeated_string_6:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_6: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 7)]
-    pub repeated_string_7:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_7: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 8)]
-    pub repeated_string_8:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_8: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 9)]
-    pub repeated_string_9:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_9: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 10)]
-    pub repeated_string_10:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_10: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 11)]
-    pub repeated_string_11:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_11: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 12)]
-    pub repeated_string_12:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_12: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 13)]
-    pub repeated_string_13:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_13: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 14)]
-    pub repeated_string_14:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_14: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 15)]
-    pub repeated_string_15:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_15: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 16)]
-    pub repeated_string_16:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_16: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 17)]
-    pub repeated_string_17:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_17: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 18)]
-    pub repeated_string_18:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_18: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 19)]
-    pub repeated_string_19:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_19: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 20)]
-    pub repeated_string_20:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_20: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 21)]
-    pub repeated_string_21:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_21: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 22)]
-    pub repeated_string_22:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_22: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 23)]
-    pub repeated_string_23:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_23: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 24)]
-    pub repeated_string_24:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_24: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 25)]
-    pub repeated_string_25:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_25: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 26)]
-    pub repeated_string_26:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_26: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 27)]
-    pub repeated_string_27:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_27: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 28)]
-    pub repeated_string_28:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_28: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 29)]
-    pub repeated_string_29:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_29: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 30)]
-    pub repeated_string_30:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_30: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 31)]
-    pub repeated_string_31:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_31: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(string, repeated, tag = 32)]
-    pub repeated_string_32:
-        ::femtopb::repeated::Repeated<'a, &'a str, ::femtopb::item_encoding::String>,
+    pub repeated_string_32: ::femtopb::repeated::Repeated<
+        'a,
+        &'a str,
+        ::femtopb::item_encoding::String,
+    >,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::femtopb::Enumeration
+)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum ForeignEnum {
@@ -3327,7 +3966,17 @@ impl ForeignEnum {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::femtopb::Enumeration
+)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum TestReservedEnumFields {
@@ -3353,7 +4002,17 @@ impl TestReservedEnumFields {
     }
 }
 /// Test an enum that has multiple values with the same number.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::femtopb::Enumeration
+)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum TestEnumWithDupValue {
@@ -3385,7 +4044,17 @@ impl TestEnumWithDupValue {
     }
 }
 /// Test an enum with large, unordered values.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::femtopb::Enumeration
+)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum TestSparseEnum {
@@ -3428,7 +4097,17 @@ impl TestSparseEnum {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::femtopb::Enumeration)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::femtopb::Enumeration
+)]
 #[repr(i32)]
 #[derive(Default)]
 pub enum VeryLargeEnum {

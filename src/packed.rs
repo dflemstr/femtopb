@@ -15,7 +15,12 @@ where
 
 /// An iterator for a `Packed`.
 #[derive(Clone, Debug, Default)]
-pub enum Iter<'a, A, E>
+pub struct Iter<'a, A, E>(IterRepr<'a, A, E>)
+where
+    E: item_encoding::ItemEncoding<'a, A>;
+
+#[derive(Clone, Debug, Default)]
+pub enum IterRepr<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
@@ -86,15 +91,16 @@ where
     E: item_encoding::ItemEncoding<'a, A>,
 {
     fn from_list(lst: list::List<'a, A>) -> Self {
-        match lst {
-            list::List::Empty => Iter::Empty,
-            list::List::MessageBuffer(msg_buf) => Iter::MessageBuffer {
+        let repr = match lst {
+            list::List::Empty => IterRepr::Empty,
+            list::List::MessageBuffer(msg_buf) => IterRepr::MessageBuffer {
                 msg_buf,
                 packed_chunk: &[],
                 phantom: marker::PhantomData,
             },
-            list::List::Slice(slice) => Iter::Slice(slice.into_iter()),
-        }
+            list::List::Slice(slice) => IterRepr::Slice(slice.into_iter()),
+        };
+        Self(repr)
     }
 }
 
@@ -208,9 +214,9 @@ where
 
     #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
     fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            Iter::Empty => None,
-            Iter::MessageBuffer {
+        match self.0 {
+            IterRepr::Empty => None,
+            IterRepr::MessageBuffer {
                 ref mut msg_buf,
                 ref mut packed_chunk,
                 phantom: _,
@@ -218,11 +224,11 @@ where
                 let result = next_item::<A, E>(msg_buf, packed_chunk);
                 if result.is_err() {
                     // If an error has occurred, we are in a bad state, so prevent further iteration
-                    *self = Iter::Empty;
+                    self.0 = IterRepr::Empty;
                 }
                 result.transpose()
             }
-            Iter::Slice(ref mut iter) => iter.next().map(|v| Ok(*v)),
+            IterRepr::Slice(ref mut iter) => iter.next().map(|v| Ok(*v)),
         }
     }
 }
