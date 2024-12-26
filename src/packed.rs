@@ -20,7 +20,7 @@ where
     E: item_encoding::ItemEncoding<'a, A>;
 
 #[derive(Clone, Debug, Default)]
-pub enum IterRepr<'a, A, E>
+enum IterRepr<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
