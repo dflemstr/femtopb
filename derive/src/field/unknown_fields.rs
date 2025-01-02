@@ -21,6 +21,7 @@ impl Field {
 
     pub fn decode_match_arm(
         &self,
+        matched_tag: &proc_macro2::TokenStream,
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
@@ -28,7 +29,7 @@ impl Field {
         known_tags: &[u32],
     ) -> syn::Result<proc_macro2::TokenStream> {
         let decode_raw_block =
-            self.decode_raw_block(field, wire_type, msg_buf, cursor, known_tags)?;
+            self.decode_raw_block(matched_tag, field, wire_type, msg_buf, cursor, known_tags)?;
 
         Ok(quote::quote! {
             _ => {
@@ -39,6 +40,7 @@ impl Field {
 
     pub fn decode_raw_block(
         &self,
+        matched_tag: &proc_macro2::TokenStream,
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
@@ -47,7 +49,7 @@ impl Field {
     ) -> syn::Result<proc_macro2::TokenStream> {
         let known_tags = quote::quote!([#(#known_tags),*]);
         Ok(quote::quote! {
-            ::femtopb::runtime::unknown_fields::decode(&#known_tags, #wire_type, #msg_buf, #cursor, &mut #field)?;
+            ::femtopb::runtime::unknown_fields::decode(&#known_tags, #matched_tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
         })
     }
 
