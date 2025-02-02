@@ -1,4 +1,7 @@
 //! Common error type definitions
+
+use core::fmt;
+use thiserror_no_std::Error;
 use crate::encoding;
 
 /// A Protobuf message decoding error.
@@ -7,6 +10,7 @@ use crate::encoding;
 /// Protobuf message. The error details should be considered 'best effort': in
 /// general it is not possible to exactly pinpoint why data is malformed.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "thiserror", derive(Error))]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[non_exhaustive]
 pub enum DecodeError {
@@ -54,12 +58,24 @@ pub enum DecodeError {
 /// provided buffer had insufficient capacity. Message encoding is otherwise
 /// infallible.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "thiserror", derive(Error))]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct EncodeError {
     /// How much space was required for the encode operation to complete
     pub required: usize,
     /// How much space actually remains in the buffer
     pub remaining: usize,
+}
+
+#[cfg(feature = "thiserror")]
+impl fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "encode error: required {} bytes but only {} remaining",
+            self.required, self.remaining
+        )
+    }
 }
 
 impl EncodeError {
