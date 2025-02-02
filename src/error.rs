@@ -1,5 +1,4 @@
 //! Common error type definitions
-
 use crate::encoding;
 
 /// A Protobuf message decoding error.
