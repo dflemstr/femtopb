@@ -70,17 +70,16 @@ pub fn encoded_len_repeated<'a, M>(
 where
     M: message::Message<'a>,
 {
-    encoding::key_len(tag) * values.len()
-        + values
-            .iter()
-            .map(|r| {
-                r.map(|v| {
-                    let len = v.encoded_len();
-                    encoding::encoded_len_varint(len as u64) + len
-                })
-                .unwrap_or(0)
+    values
+        .iter()
+        .map(|r| {
+            r.map(|v| {
+                let len = v.encoded_len();
+                encoding::key_len(tag) + encoding::encoded_len_varint(len as u64) + len
             })
-            .sum::<usize>()
+            .unwrap_or(0)
+        })
+        .sum::<usize>()
 }
 
 #[inline]

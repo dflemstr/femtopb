@@ -189,8 +189,10 @@ macro_rules! varint {
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn encoded_len_repeated<$lt>(tag: u32, values: $crate::repeated::Repeated<$lt, $ty, $item_encoding>) -> usize {
-            encoding::key_len(tag) * values.len() + values.iter().map(|r| {
-                r.map(|$to_uint64_value| encoding::encoded_len_varint($to_uint64)).unwrap_or(0)
+            // Count key + value only for successfully-decoded items, since `encode_repeated`
+            // writes only those; an iteration error (from a corrupt backing buffer) contributes 0.
+            values.iter().map(|r| {
+                r.map(|$to_uint64_value| encoding::key_len(tag) + encoding::encoded_len_varint($to_uint64)).unwrap_or(0)
             }).sum::<usize>()
         }
 
@@ -282,7 +284,9 @@ macro_rules! fixed_width {
         ) {
             if !values.is_empty() {
                 encoding::encode_key(tag, encoding::WireType::LengthDelimited, cursor);
-                let len = values.len() as u64 * $width;
+                // Only successfully-decoded items are written below, so size the length prefix to
+                // match — a trailing iteration error (from a corrupt backing buffer) is excluded.
+                let len = values.iter().filter(|r| r.is_ok()).count() as u64 * $width;
                 encoding::encode_varint(len as u64, cursor);
 
                 for result in values {
@@ -332,7 +336,7 @@ macro_rules! fixed_width {
             tag: u32,
             values: $crate::repeated::Repeated<$ty, $item_encoding>,
         ) -> usize {
-            (encoding::key_len(tag) + $width) * values.len()
+            (encoding::key_len(tag) + $width) * values.iter().filter(|r| r.is_ok()).count()
         }
 
         #[inline]
@@ -344,7 +348,7 @@ macro_rules! fixed_width {
             if values.is_empty() {
                 0
             } else {
-                let len = $width * values.len();
+                let len = $width * values.iter().filter(|r| r.is_ok()).count();
                 encoding::key_len(tag) + encoding::encoded_len_varint(len as u64) + len
             }
         }
@@ -429,14 +433,15 @@ macro_rules! length_delimited {
             values: $crate::repeated::Repeated<$lt, $ty, $item_encoding>,
         ) -> usize {
             use $crate::encoding;
-            encoding::key_len(tag) * values.len()
-                + values
-                    .iter()
-                    .map(|r| {
-                        r.map(|v| encoding::encoded_len_varint(v.len() as u64) + v.len())
-                            .unwrap_or(0)
+            values
+                .iter()
+                .map(|r| {
+                    r.map(|v| {
+                        encoding::key_len(tag) + encoding::encoded_len_varint(v.len() as u64) + v.len()
                     })
-                    .sum::<usize>()
+                    .unwrap_or(0)
+                })
+                .sum::<usize>()
         }
     };
 }
