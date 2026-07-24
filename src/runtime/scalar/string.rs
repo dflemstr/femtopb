@@ -70,7 +70,8 @@ pub fn decode_optional<'a>(
 pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a str, error::DecodeError> {
-    let len = encoding::decode_varint(cursor)? as usize;
+    let len = encoding::decode_varint(cursor)?;
+    let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
         let string = str::from_utf8(bytes).map_err(|e| error::DecodeError::InvalidUtf8 {
@@ -86,3 +87,68 @@ pub(crate) fn decode_single_value<'a>(
 
 crate::runtime::macros::decode_packed_repeated!('a, &'a str, crate::item_encoding::String);
 crate::runtime::macros::trivial_clear!('a, &'a str, &'static str, crate::item_encoding::String);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_single_value_rejects_invalid_utf8_with_error_len() {
+        // length 2, then 0xFF 0xFF: 0xFF is an invalid leading byte, so the UTF-8 error reports
+        // `valid_up_to == 0` and `error_len == Some(1)`.
+        let buf = [0x02u8, 0xFF, 0xFF];
+        let mut cursor: &[u8] = &buf;
+        match decode_single_value(&mut cursor).unwrap_err() {
+            error::DecodeError::InvalidUtf8 {
+                valid_up_to,
+                error_len,
+            } => {
+                assert_eq!(valid_up_to, 0);
+                assert_eq!(error_len, Some(1));
+            }
+            other => panic!("expected InvalidUtf8, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn decode_single_value_rejects_invalid_utf8_without_error_len() {
+        // length 1, then 0xE2: the start of a 3-byte sequence that is truncated, so the UTF-8
+        // error reports `error_len == None`.
+        let buf = [0x01u8, 0xE2];
+        let mut cursor: &[u8] = &buf;
+        match decode_single_value(&mut cursor).unwrap_err() {
+            error::DecodeError::InvalidUtf8 {
+                valid_up_to,
+                error_len,
+            } => {
+                assert_eq!(valid_up_to, 0);
+                assert_eq!(error_len, None);
+            }
+            other => panic!("expected InvalidUtf8, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn decode_single_value_rejects_length_beyond_buffer() {
+        // declares length 5 but only one content byte follows
+        let buf = [0x05u8, b'a'];
+        let mut cursor: &[u8] = &buf;
+        assert_eq!(
+            decode_single_value(&mut cursor).unwrap_err(),
+            error::DecodeError::BufferUnderflow
+        );
+    }
+
+    // Only reachable where `usize` is narrower than `u64`; exercised by the 32-bit CI target.
+    #[cfg(target_pointer_width = "32")]
+    #[test]
+    fn decode_single_value_rejects_length_exceeding_usize() {
+        // varint encoding of 2^32, which does not fit in a 32-bit `usize`
+        let buf = [0x80u8, 0x80, 0x80, 0x80, 0x10];
+        let mut cursor: &[u8] = &buf;
+        assert_eq!(
+            decode_single_value(&mut cursor).unwrap_err(),
+            error::DecodeError::LengthTooLargeForPlatform(0x1_0000_0000)
+        );
+    }
+}

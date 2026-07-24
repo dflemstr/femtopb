@@ -74,9 +74,11 @@ pub trait Message<'a>: Clone {
         Self: Sized,
     {
         let len = encoding::decode_varint(buf)?;
-        let len = usize::try_from(len).map_err(|_| error::DecodeError::VarintTooLarge(len))?;
-        let (start, rest) = buf.split_at(len);
-        let message = Self::decode(&start)?;
+        let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
+        let (start, rest) = buf
+            .split_at_checked(len)
+            .ok_or(error::DecodeError::BufferUnderflow)?;
+        let message = Self::decode(start)?;
         *buf = rest;
         Ok(message)
     }

@@ -69,7 +69,8 @@ pub fn decode_optional<'a>(
 pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a [u8], error::DecodeError> {
-    let len = encoding::decode_varint(cursor)? as usize;
+    let len = encoding::decode_varint(cursor)?;
+    let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
         *cursor = rest;
@@ -81,3 +82,32 @@ pub(crate) fn decode_single_value<'a>(
 
 crate::runtime::macros::decode_packed_repeated!('a, &'a [u8], crate::item_encoding::Bytes);
 crate::runtime::macros::trivial_clear!('a, &'a [u8], &'static [u8], crate::item_encoding::Bytes);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_single_value_rejects_length_beyond_buffer() {
+        // declares length 5 but only one content byte follows
+        let buf = [0x05u8, b'a'];
+        let mut cursor: &[u8] = &buf;
+        assert_eq!(
+            decode_single_value(&mut cursor).unwrap_err(),
+            error::DecodeError::BufferUnderflow
+        );
+    }
+
+    // Only reachable where `usize` is narrower than `u64`; exercised by the 32-bit CI target.
+    #[cfg(target_pointer_width = "32")]
+    #[test]
+    fn decode_single_value_rejects_length_exceeding_usize() {
+        // varint encoding of 2^32, which does not fit in a 32-bit `usize`
+        let buf = [0x80u8, 0x80, 0x80, 0x80, 0x10];
+        let mut cursor: &[u8] = &buf;
+        assert_eq!(
+            decode_single_value(&mut cursor).unwrap_err(),
+            error::DecodeError::LengthTooLargeForPlatform(0x1_0000_0000)
+        );
+    }
+}

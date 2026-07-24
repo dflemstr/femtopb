@@ -125,7 +125,8 @@ pub fn decode_single_value<'a, M>(cursor: &mut &'a [u8]) -> Result<M, error::Dec
 where
     M: message::Message<'a>,
 {
-    let len = encoding::decode_varint(cursor)? as usize;
+    let len = encoding::decode_varint(cursor)?;
+    let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
         let msg = M::decode(bytes)?;
