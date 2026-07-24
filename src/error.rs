@@ -60,6 +60,10 @@ pub enum DecodeError {
     /// but invalid field tag value.
     #[cfg_attr(feature = "thiserror", error("Key value out of range: {0}"))]
     InvalidTagValue(u32),
+    /// The group nesting depth exceeded [`crate::encoding::RECURSION_LIMIT`] while skipping a
+    /// field; the buffer is likely corrupt or hostile.
+    #[cfg_attr(feature = "thiserror", error("Maximum group nesting depth exceeded while skipping a field"))]
+    RecursionLimitReached,
     /// The encountered string field does not contain valid UTF-8 data.
     #[cfg_attr(feature = "thiserror",
         error("Invalid UTF-8 data: Valid up to {}. Error length: {}",
