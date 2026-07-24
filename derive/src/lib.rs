@@ -193,9 +193,27 @@ struct OneofVariant {
 }
 
 fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
-    let lt = get_first_lifetime(&input.generics, "::femtopb::Oneof")?;
     let ident = &input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+
+    // The `Oneof` trait is parameterised over the lifetime of the buffer being decoded. If the enum
+    // already declares a lifetime (because it has borrowing variants such as `&'a str`), reuse it.
+    // Otherwise synthesise a fresh one that appears only in the impl header, so that a oneof made up
+    // solely of scalar variants — which has no reason to carry a lifetime — can still derive
+    // `Oneof` without the enum tripping "unused lifetime parameter" (E0392).
+    let mut impl_generics_src = input.generics.clone();
+    let lt = match first_lifetime(&input.generics) {
+        Some(lt) => lt.clone(),
+        None => {
+            let lt = syn::Lifetime::new("'femtopb", proc_macro2::Span::call_site());
+            impl_generics_src.params.insert(
+                0,
+                syn::GenericParam::Lifetime(syn::LifetimeParam::new(lt.clone())),
+            );
+            lt
+        }
+    };
+    let (impl_generics, _, _) = impl_generics_src.split_for_impl();
+    let (_, ty_generics, where_clause) = input.generics.split_for_impl();
 
     let variants = match input.data {
         syn::Data::Enum(data_enum) => data_enum.variants.into_iter().map(|variant| {
@@ -311,25 +329,24 @@ fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenSt
     })
 }
 
+fn first_lifetime(generics: &syn::Generics) -> Option<&syn::Lifetime> {
+    generics.params.iter().find_map(|p| {
+        if let syn::GenericParam::Lifetime(syn::LifetimeParam { lifetime, .. }) = p {
+            Some(lifetime)
+        } else {
+            None
+        }
+    })
+}
+
 fn get_first_lifetime<'a>(
     generics: &'a syn::Generics,
     derived_trait: &str,
 ) -> syn::Result<&'a syn::Lifetime> {
-    generics
-        .params
-        .iter()
-        .filter_map(|p| {
-            if let syn::GenericParam::Lifetime(syn::LifetimeParam { lifetime, .. }) = p {
-                Some(lifetime)
-            } else {
-                None
-            }
-        })
-        .next()
-        .ok_or(syn::Error::new(
-            proc_macro2::Span::call_site(),
-            format!("`{derived_trait}` must only be derived for structs which have a lifetime parameter"),
-        ))
+    first_lifetime(generics).ok_or(syn::Error::new(
+        proc_macro2::Span::call_site(),
+        format!("`{derived_trait}` must only be derived for structs which have a lifetime parameter"),
+    ))
 }
 
 fn collect_raw_fields(span: proc_macro2::Span, data: syn::Data) -> syn::Result<RawFields> {
