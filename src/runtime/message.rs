@@ -33,10 +33,8 @@ pub fn encode_repeated<'a, M>(
 ) where
     M: message::Message<'a>,
 {
-    for result in values {
-        if let Ok(value) = result {
-            encode(tag, &value, cursor);
-        }
+    for value in values.into_iter().flatten() {
+        encode(tag, &value, cursor);
     }
 }
 

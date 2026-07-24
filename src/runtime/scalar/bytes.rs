@@ -33,7 +33,7 @@ fn encode_single_value(value: &[u8], cursor: &mut &mut [u8]) {
     let len = value.len();
     encoding::encode_varint(len as u64, cursor);
 
-    let buf = mem::replace(cursor, &mut []);
+    let buf = mem::take(cursor);
     let (bytes, rest) = buf.split_at_mut(len);
     *cursor = rest;
     bytes.copy_from_slice(value);

@@ -30,14 +30,11 @@ impl<'a, A> List<'a, A> {
     }
 }
 
-// Implemented manually since `List<'a, A>: Clone` does not require `A: Clone`
+// Implemented manually since deriving `Clone` would wrongly require `A: Clone`; `List` is `Copy`
+// regardless of `A`, so a plain copy suffices.
 impl<'a, A> Clone for List<'a, A> {
     fn clone(&self) -> Self {
-        match *self {
-            List::Empty => List::Empty,
-            List::MessageBuffer(ref b) => List::MessageBuffer(b.clone()),
-            List::Slice(s) => List::Slice(s),
-        }
+        *self
     }
 }
 

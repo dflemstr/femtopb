@@ -1,7 +1,7 @@
 use core::mem;
 
 fn put_chunk<const N: usize>(cursor: &mut &mut [u8], data: [u8; N]) {
-    let buf = mem::replace(cursor, &mut []);
+    let buf = mem::take(cursor);
     let (chunk, rest) = buf.split_first_chunk_mut::<N>().unwrap();
     *chunk = data;
     *cursor = rest;
