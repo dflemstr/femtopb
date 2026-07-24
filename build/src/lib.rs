@@ -258,14 +258,87 @@ impl Config {
 fn transform(content: &str) -> String {
     let mut file = syn::parse_file(content).unwrap();
 
+    // Oneofs made up solely of scalar variants must not carry a lifetime (an unused lifetime is a
+    // hard error), so they are emitted without one and without the `PhantomData` variant. Collect
+    // their names up front, since a message field can reference a oneof declared later in the file.
+    let scalar_only_oneofs = collect_scalar_only_oneofs(&file.items);
+
     for item in &mut file.items {
-        transform_item(item);
+        transform_item(item, &scalar_only_oneofs);
     }
 
     prettyplease::unparse(&file)
 }
 
-fn transform_item(item: &mut syn::Item) {
+/// Collects the identity of every oneof enum in the file (recursing into modules) whose variants
+/// are all non-borrowing, i.e. that will be emitted without a lifetime parameter.
+///
+/// A oneof is always nested in its containing message and is referenced only by that message, and
+/// prost-build emits both in the same module file (the oneof enum in a submodule named after the
+/// message), so a single-file pass sees the definition and every reference. Enums are keyed by
+/// `parent_module::Enum` rather than by bare name, so two same-named oneofs in one file (e.g. two
+/// messages that each declare `oneof kind`) are never conflated.
+fn collect_scalar_only_oneofs(items: &[syn::Item]) -> collections::HashSet<String> {
+    let mut names = collections::HashSet::new();
+    collect_scalar_only_oneofs_into(items, None, &mut names);
+    names
+}
+
+fn collect_scalar_only_oneofs_into(
+    items: &[syn::Item],
+    parent_module: Option<&syn::Ident>,
+    names: &mut collections::HashSet<String>,
+) {
+    for item in items {
+        match *item {
+            syn::Item::Enum(ref enum_item)
+                if has_oneof_derive(enum_item) && !oneof_borrows(enum_item) =>
+            {
+                names.insert(qualified_oneof_key(parent_module, &enum_item.ident));
+            }
+            syn::Item::Mod(syn::ItemMod {
+                ident: ref module_ident,
+                content: Some((_, ref items)),
+                ..
+            }) => collect_scalar_only_oneofs_into(items, Some(module_ident), names),
+            _ => {}
+        }
+    }
+}
+
+/// Builds the lookup key for a oneof enum from the module it lives in and its name.
+fn qualified_oneof_key(parent_module: Option<&syn::Ident>, ident: &syn::Ident) -> String {
+    match parent_module {
+        Some(module) => format!("{module}::{ident}"),
+        None => ident.to_string(),
+    }
+}
+
+/// Returns `true` if any variant of the oneof borrows from the decode buffer — i.e. is a `string`,
+/// `bytes`, `message` or `group` field — and therefore needs a lifetime parameter.
+fn oneof_borrows(enum_item: &syn::ItemEnum) -> bool {
+    enum_item.variants.iter().any(|variant| {
+        variant.attrs.iter().any(|attr| {
+            attr.meta.path().is_ident("prost")
+                && attr
+                    .parse_args_with(
+                        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+                    )
+                    .map(|nested| {
+                        nested.iter().any(|meta| {
+                            let p = meta.path();
+                            p.is_ident("string")
+                                || p.is_ident("bytes")
+                                || p.is_ident("message")
+                                || p.is_ident("group")
+                        })
+                    })
+                    .unwrap_or(false)
+        })
+    })
+}
+
+fn transform_item(item: &mut syn::Item, scalar_only_oneofs: &collections::HashSet<String>) {
     match *item {
         syn::Item::Struct(ref mut struct_item) if has_message_derive(struct_item) => {
             struct_item
@@ -276,7 +349,7 @@ fn transform_item(item: &mut syn::Item) {
                 )));
 
             for field in &mut struct_item.fields {
-                transform_field(field);
+                transform_field(field, scalar_only_oneofs);
             }
             match struct_item.fields {
                 syn::Fields::Named(syn::FieldsNamed { ref mut named, .. }) => {
@@ -302,26 +375,36 @@ fn transform_item(item: &mut syn::Item) {
             enum_item.attrs.push(syn::parse_quote! {
                 #[non_exhaustive]
             });
-            enum_item
-                .generics
-                .params
-                .push(syn::GenericParam::Lifetime(syn::LifetimeParam::new(
-                    syn::Lifetime::new("'a", proc_macro2::Span::call_site()),
-                )));
 
-            for variant in &mut enum_item.variants {
-                transform_variant(variant);
+            // A oneof only needs a lifetime — and the `PhantomData` variant that consumes it — if
+            // some variant borrows from the buffer. A purely scalar oneof gets neither, since an
+            // unused lifetime parameter would fail to compile. Determined directly from the (still
+            // prost-annotated) variants, consistent with how the reference set was collected.
+            let borrows = oneof_borrows(enum_item);
+            if borrows {
+                enum_item
+                    .generics
+                    .params
+                    .push(syn::GenericParam::Lifetime(syn::LifetimeParam::new(
+                        syn::Lifetime::new("'a", proc_macro2::Span::call_site()),
+                    )));
             }
 
-            enum_item.variants.push(syn::parse_quote! {
-                #[femtopb(phantom)]
-                _Phantom(::core::marker::PhantomData<&'a ()>)
-            });
+            for variant in &mut enum_item.variants {
+                transform_variant(variant, scalar_only_oneofs);
+            }
+
+            if borrows {
+                enum_item.variants.push(syn::parse_quote! {
+                    #[femtopb(phantom)]
+                    _Phantom(::core::marker::PhantomData<&'a ()>)
+                });
+            }
         }
         syn::Item::Mod(ref mut item_mod) => {
             if let Some(ref mut content) = item_mod.content {
                 for mod_item in &mut content.1 {
-                    transform_item(mod_item);
+                    transform_item(mod_item, scalar_only_oneofs);
                 }
             }
         }
@@ -515,36 +598,48 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
     }
 }
 
-fn transform_field(field: &mut syn::Field) {
+fn transform_field(field: &mut syn::Field, scalar_only_oneofs: &collections::HashSet<String>) {
     let mut metadata = FieldMetadata::default();
     for attr in &mut field.attrs {
         transform_prost_attr(attr, &mut metadata);
     }
-    transform_field_type(&mut field.ty, &metadata);
+    transform_field_type(&mut field.ty, &metadata, scalar_only_oneofs);
 }
 
-fn transform_variant(variant: &mut syn::Variant) {
+fn transform_variant(variant: &mut syn::Variant, scalar_only_oneofs: &collections::HashSet<String>) {
     let mut metadata = FieldMetadata::default();
     for attr in &mut variant.attrs {
         transform_prost_attr(attr, &mut metadata);
     }
-    transform_field_type(&mut variant.fields.iter_mut().next().unwrap().ty, &metadata);
+    transform_field_type(
+        &mut variant.fields.iter_mut().next().unwrap().ty,
+        &metadata,
+        scalar_only_oneofs,
+    );
 }
 
-fn transform_field_type(ty: &mut syn::Type, metadata: &FieldMetadata) {
+fn transform_field_type(
+    ty: &mut syn::Type,
+    metadata: &FieldMetadata,
+    scalar_only_oneofs: &collections::HashSet<String>,
+) {
     match ty {
         syn::Type::Path(syn::TypePath { ref mut path, .. }) => {
             // Check for option/vec/box before is_enum/is_message to handle the optional/repeated
             // messages/enums
             if has_same_path_idents(path, "::core::option::Option") {
                 let generic_segment = path.segments.last_mut().unwrap();
-                transform_field_type(get_single_generic_arg(generic_segment), metadata);
+                transform_field_type(
+                    get_single_generic_arg(generic_segment),
+                    metadata,
+                    scalar_only_oneofs,
+                );
             } else if has_same_path_idents(path, "::femtopb::alloc::boxed::Box")
                 || has_same_path_idents(path, "::prost::alloc::boxed::Box")
             {
                 let generic_segment = path.segments.last_mut().unwrap();
                 let inner_ty = get_single_generic_arg(generic_segment);
-                transform_field_type(inner_ty, metadata);
+                transform_field_type(inner_ty, metadata, scalar_only_oneofs);
                 *ty = syn::parse2(quote::quote!(::femtopb::deferred::Deferred<'a, #inner_ty>))
                     .unwrap();
             } else if has_same_path_idents(path, "::femtopb::alloc::vec::Vec")
@@ -617,13 +712,24 @@ fn transform_field_type(ty: &mut syn::Type, metadata: &FieldMetadata) {
                     }
                     Some(v) => panic!("unable to determine item encoding for {:?}", v),
                 };
-                transform_field_type(inner_ty, metadata);
+                transform_field_type(inner_ty, metadata, scalar_only_oneofs);
                 *ty =
                     syn::parse2(quote::quote!(#base_type<'a, #inner_ty, #item_encoding>)).unwrap();
             } else if metadata.is_message || metadata.is_oneof.is_some() {
+                // A scalar-only oneof is emitted without a lifetime parameter, so references to it
+                // must not add one; messages (and borrowing oneofs) always carry `<'a>`. The oneof
+                // is referenced as `parent_module::Enum`, matching the key used during collection.
+                let is_scalar_only_oneof = metadata.is_oneof.is_some() && {
+                    let n = path.segments.len();
+                    let parent = (n >= 2).then(|| path.segments[n - 2].ident.clone());
+                    let key = qualified_oneof_key(parent.as_ref(), &path.segments[n - 1].ident);
+                    scalar_only_oneofs.contains(&key)
+                };
                 let generic_segment = path.segments.last_mut().unwrap();
                 let ident = &generic_segment.ident;
-                *generic_segment = syn::parse2(quote::quote!(#ident<'a>)).unwrap()
+                if !is_scalar_only_oneof {
+                    *generic_segment = syn::parse2(quote::quote!(#ident<'a>)).unwrap();
+                }
             } else if let Some(enum_ty) = &metadata.is_enum {
                 *ty = syn::parse2(quote::quote!(::femtopb::enumeration::EnumValue<#enum_ty>))
                     .unwrap();
@@ -759,6 +865,51 @@ pub struct NestedMessage<'a> {
 "#;
         let actual = transform(original);
         assert_eq!(actual.trim(), expected.trim());
+    }
+
+    #[test]
+    fn scalar_only_oneof_omits_lifetime_and_phantom() {
+        // A oneof whose variants are all scalar must be emitted without a lifetime and without the
+        // `PhantomData` variant (an unused lifetime is a hard error), and references to it must not
+        // add a lifetime argument. A oneof that borrows keeps all three.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct Msg {
+    #[prost(oneof="msg::Scalar", tags="1")]
+    pub scalar: ::core::option::Option<msg::Scalar>,
+    #[prost(oneof="msg::Borrowing", tags="2")]
+    pub borrowing: ::core::option::Option<msg::Borrowing>,
+}
+pub mod msg {
+    #[derive(Clone, Copy, PartialEq, ::femtopb::Oneof)]
+    pub enum Scalar {
+        #[prost(int32, tag="1")]
+        Number(i32),
+    }
+    #[derive(Clone, PartialEq, ::femtopb::Oneof)]
+    pub enum Borrowing {
+        #[prost(string, tag="2")]
+        Text(::prost::alloc::string::String),
+    }
+}
+"#;
+        let actual = transform(original);
+
+        // Scalar-only oneof: no lifetime, no phantom variant, and a lifetime-free reference.
+        assert!(actual.contains("pub enum Scalar {"), "{actual}");
+        assert!(!actual.contains("Scalar<'a>"), "{actual}");
+        assert!(
+            actual.contains("pub scalar: ::core::option::Option<msg::Scalar>"),
+            "{actual}"
+        );
+
+        // Borrowing oneof: keeps its lifetime, its phantom variant, and its qualified reference.
+        assert!(actual.contains("pub enum Borrowing<'a>"), "{actual}");
+        assert!(actual.contains("_Phantom"), "{actual}");
+        assert!(
+            actual.contains("Option<msg::Borrowing<'a>>"),
+            "{actual}"
+        );
     }
 
     #[test]
