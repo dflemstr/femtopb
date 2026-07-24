@@ -94,7 +94,7 @@ where
                 msg_buf,
                 phantom: marker::PhantomData,
             },
-            list::List::Slice(slice) => IterRepr::Slice(slice.into_iter()),
+            list::List::Slice(slice) => IterRepr::Slice(slice.iter()),
         };
         Self(repr)
     }
@@ -110,12 +110,14 @@ where
     }
 }
 
+// Implemented manually since deriving `Clone` would wrongly require `A: Clone`; `Repeated` is
+// `Copy` regardless of `A`, so a plain copy suffices.
 impl<'a, A, E> Clone for Repeated<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
     fn clone(&self) -> Self {
-        Repeated(self.0, self.1)
+        *self
     }
 }
 
@@ -180,7 +182,7 @@ where
     }
 }
 
-impl<'a, 'b, A, E> IntoIterator for &'b Repeated<'a, A, E>
+impl<'a, A, E> IntoIterator for &Repeated<'a, A, E>
 where
     A: Clone,
     E: item_encoding::ItemEncoding<'a, A>,

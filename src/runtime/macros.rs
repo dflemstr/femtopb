@@ -22,14 +22,18 @@ pub(crate) use encode_repeated;
 /// (i.e. set to default values/empty values)
 macro_rules! trivial_clear {
     ($lt:lifetime, $ty:ty, $default_ty:ty, $item_encoding:ty) => {
+        // The lifetime is used by the string/bytes instantiations (where `$ty` borrows it) but is
+        // unused for the scalar numeric ones, so keep it for uniformity and silence the lint.
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
+        #[allow(clippy::extra_unused_lifetimes)]
         pub fn clear<$lt>(value: &mut $ty, default: $default_ty) {
             *value = default;
         }
 
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
+        #[allow(clippy::extra_unused_lifetimes)]
         pub fn clear_optional<$lt>(value: &mut Option<$ty>, default: Option<$default_ty>) {
             *value = default;
         }

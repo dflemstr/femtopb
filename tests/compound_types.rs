@@ -305,7 +305,7 @@ proptest::proptest! {
         let repeated_message = arbitrary
             .repeated_message
             .iter()
-            .map(|a| Basic::from_arbitrary(a))
+            .map(Basic::from_arbitrary)
             .collect::<Vec<_>>();
         let packed_enumeration = arbitrary
             .packed_enumeration

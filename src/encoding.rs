@@ -45,7 +45,7 @@ impl TryFrom<u64> for WireType {
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
     loop {
-        let buf = mem::replace(cursor, &mut []);
+        let buf = mem::take(cursor);
         let (byte, rest) = buf.split_first_mut().unwrap();
         *cursor = rest;
         if value < 0x80 {
@@ -445,7 +445,7 @@ mod tests {
     fn skip_field_bounds_group_recursion() {
         // A single-byte `StartGroup` key for tag 1 (tag << 3 | 3 = 0b1011 = 0x0B), repeated many
         // times, would otherwise recurse once per byte and overflow the stack.
-        let start_group = ((1u8 << 3) | WireType::StartGroup as u8) as u8;
+        let start_group = (1u8 << 3) | WireType::StartGroup as u8;
         let deeply_nested = vec![start_group; (RECURSION_LIMIT as usize) + 10];
 
         let mut cursor: &[u8] = &deeply_nested;

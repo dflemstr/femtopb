@@ -14,7 +14,7 @@ pub fn encode<E>(
 ) where
     E: enumeration::Enumeration,
 {
-    let raw_default = default.unwrap_or(E::default()).encode();
+    let raw_default = default.unwrap_or_default().encode();
     let raw_value = value.to_raw();
     if raw_value != raw_default {
         encode_key_value(tag, value, cursor);
@@ -45,10 +45,8 @@ pub fn encode_repeated<E>(
 ) where
     E: enumeration::Enumeration,
 {
-    for result in values {
-        if let Ok(value) = result {
-            encode_key_value(tag, value, cursor);
-        }
+    for value in values.into_iter().flatten() {
+        encode_key_value(tag, value, cursor);
     }
 }
 
@@ -69,10 +67,8 @@ pub fn encode_packed<E>(
             .sum();
         encoding::encode_varint(len as u64, cursor);
 
-        for result in values {
-            if let Ok(value) = result {
-                encode_single_value(value, cursor);
-            }
+        for value in values.into_iter().flatten() {
+            encode_single_value(value, cursor);
         }
     }
 }
@@ -102,7 +98,7 @@ pub fn encoded_len<E>(tag: u32, value: enumeration::EnumValue<E>, default: Optio
 where
     E: enumeration::Enumeration,
 {
-    let raw_default = default.unwrap_or(E::default()).encode();
+    let raw_default = default.unwrap_or_default().encode();
     let raw_value = value.to_raw();
     if raw_value == raw_default {
         0
