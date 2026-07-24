@@ -12,6 +12,7 @@ pub trait Message<'a>: Clone {
     fn encode_raw(&self, cursor: &mut &mut [u8]);
 
     /// Returns the encoded length of the message without a length delimiter.
+    #[must_use]
     fn encoded_len(&self) -> usize;
 
     /// Encodes the message to a buffer.
