@@ -77,10 +77,8 @@ pub enum DecodeError {
 
 /// Formats an optional error length for the [`DecodeError::InvalidUtf8`] message, rendering
 /// `Some(n)` as `n` and `None` as `N/A` without any allocation.
-#[cfg(feature = "thiserror")]
 struct OptionalLen<'a>(&'a Option<usize>);
 
-#[cfg(feature = "thiserror")]
 impl core::fmt::Display for OptionalLen<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self.0 {
@@ -89,6 +87,54 @@ impl core::fmt::Display for OptionalLen<'_> {
         }
     }
 }
+
+// When the `thiserror` feature is enabled it provides `Display` and `Error`. Otherwise implement
+// them by hand so `DecodeError` is a first-class error type (usable with `?` into
+// `Box<dyn core::error::Error>`, `.source()`, etc.) without pulling in a dependency.
+#[cfg(not(feature = "thiserror"))]
+impl core::fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match *self {
+            DecodeError::InvalidVarint => f.write_str(
+                "Unable to decode varint: the last byte overflowed a 64-bit integer. \
+                 The buffer is likely corrupt",
+            ),
+            DecodeError::VarintTooLarge(value) => write!(f, "Varint larger than expected: {value}"),
+            DecodeError::LengthTooLargeForPlatform(value) => {
+                write!(f, "Length {value} does not fit in a usize on this platform")
+            }
+            DecodeError::BufferUnderflow => f.write_str("Provided buffer is too short"),
+            DecodeError::UnexpectedEndGroupTag => {
+                f.write_str("End group tag encountered without matching start group tag")
+            }
+            DecodeError::InvalidWireTypeValue(value) => {
+                write!(f, "Wire type value too large: {value}")
+            }
+            DecodeError::UnexpectedWireTypeValue { actual, expected } => write!(
+                f,
+                "Unexpected wire type: {}. Expected: {}",
+                actual as u8, expected as u8
+            ),
+            DecodeError::UnexpectedTagValue(value) => write!(f, "Unexpected tag value: {value}"),
+            DecodeError::InvalidKeyValue(value) => write!(f, "Key value out of range: {value}"),
+            DecodeError::InvalidTagValue(value) => write!(f, "Key value out of range: {value}"),
+            DecodeError::RecursionLimitReached => {
+                f.write_str("Maximum group nesting depth exceeded while skipping a field")
+            }
+            DecodeError::InvalidUtf8 {
+                valid_up_to,
+                ref error_len,
+            } => write!(
+                f,
+                "Invalid UTF-8 data: Valid up to {valid_up_to}. Error length: {}",
+                OptionalLen(error_len)
+            ),
+        }
+    }
+}
+
+#[cfg(not(feature = "thiserror"))]
+impl core::error::Error for DecodeError {}
 
 /// A Protobuf message encoding error.
 ///
@@ -115,6 +161,21 @@ impl EncodeError {
         }
     }
 }
+
+// See the note on `DecodeError`'s hand-written impls above.
+#[cfg(not(feature = "thiserror"))]
+impl core::fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "encode error: required {} bytes but only {} remaining",
+            self.required, self.remaining
+        )
+    }
+}
+
+#[cfg(not(feature = "thiserror"))]
+impl core::error::Error for EncodeError {}
 
 #[cfg(all(test, feature = "thiserror"))]
 mod tests {
@@ -155,5 +216,60 @@ mod tests {
             DecodeError::LengthTooLargeForPlatform(42).to_string(),
             "Length 42 does not fit in a usize on this platform"
         );
+    }
+}
+
+#[cfg(all(test, not(feature = "thiserror")))]
+mod tests {
+    use super::*;
+
+    // The hand-written Display impls must render exactly like the thiserror-generated ones so the
+    // two feature configurations agree.
+    #[test]
+    fn decode_error_display_matches_thiserror_messages() {
+        assert_eq!(
+            DecodeError::VarintTooLarge(7).to_string(),
+            "Varint larger than expected: 7"
+        );
+        assert_eq!(
+            DecodeError::LengthTooLargeForPlatform(42).to_string(),
+            "Length 42 does not fit in a usize on this platform"
+        );
+        assert_eq!(
+            DecodeError::RecursionLimitReached.to_string(),
+            "Maximum group nesting depth exceeded while skipping a field"
+        );
+        assert_eq!(
+            DecodeError::InvalidUtf8 {
+                valid_up_to: 3,
+                error_len: Some(2),
+            }
+            .to_string(),
+            "Invalid UTF-8 data: Valid up to 3. Error length: 2"
+        );
+        assert_eq!(
+            DecodeError::InvalidUtf8 {
+                valid_up_to: 3,
+                error_len: None,
+            }
+            .to_string(),
+            "Invalid UTF-8 data: Valid up to 3. Error length: N/A"
+        );
+    }
+
+    #[test]
+    fn encode_error_display() {
+        assert_eq!(
+            EncodeError::new(10, 4).to_string(),
+            "encode error: required 10 bytes but only 4 remaining"
+        );
+    }
+
+    #[test]
+    fn errors_implement_error_trait() {
+        // Compiles only if the `core::error::Error` impls are present without the thiserror feature.
+        fn assert_error<E: core::error::Error>() {}
+        assert_error::<DecodeError>();
+        assert_error::<EncodeError>();
     }
 }
