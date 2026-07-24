@@ -32,6 +32,7 @@ where
     E: Enumeration,
 {
     /// Converts this enum value into its raw integer discriminant representation.
+    #[must_use]
     pub fn to_raw(&self) -> i32 {
         match *self {
             EnumValue::Known(v) => v.encode(),

@@ -36,6 +36,7 @@ where
     E: item_encoding::ItemEncoding<'a, A>,
 {
     /// Creates a new, empty `Repeated` with minimal memory footprint.
+    #[must_use]
     pub const fn empty() -> Self {
         Self(list::List::empty(), marker::PhantomData)
     }
@@ -43,11 +44,13 @@ where
     /// Creates a `Repeated` that uses the specified slice as its storage.
     ///
     /// The slice must live as long as this `Repeated` does.
+    #[must_use]
     pub const fn from_slice(slice: &'a [A]) -> Self {
         Self(list::List::from_slice(slice), marker::PhantomData)
     }
 
     // Used internally by the runtime during decoding
+    #[must_use]
     pub const fn from_msg_buf(tag: u32, data: &'a [u8]) -> Self {
         Self(list::List::from_msg_buf(tag, data), marker::PhantomData)
     }
@@ -67,10 +70,12 @@ where
     A: Clone,
     E: item_encoding::ItemEncoding<'a, A>,
 {
+    #[must_use]
     pub fn iter(&self) -> Iter<'a, A, E> {
         self.into_iter()
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         // This is different from `self.is_unpopulated()`, because the other reprs
         // (e.g. empty slice, or message buffer without an occurrence of the right tag) might also
@@ -78,6 +83,7 @@ where
         self.iter().next().is_none() // TODO: optimization potential?
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.iter().count() // TODO: optimization potential?
     }
