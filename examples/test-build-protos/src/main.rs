@@ -14,7 +14,7 @@ fn main() -> anyhow::Result<()> {
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn decode_panic_free(
     buffer: &[u8],
-) -> Result<protobuf_unittest::TestAllTypes, femtopb::error::DecodeError> {
+) -> Result<protobuf_unittest::TestAllTypes<'_>, femtopb::error::DecodeError> {
     use femtopb::Message as _;
     protobuf_unittest::TestAllTypes::decode(buffer)
 }

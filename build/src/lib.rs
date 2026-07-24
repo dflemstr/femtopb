@@ -155,6 +155,12 @@ struct FieldMetadata {
     is_packed: bool,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Config {
     pub fn new() -> Self {
         Self {
@@ -214,7 +220,7 @@ impl Config {
             .collect::<collections::HashMap<prost_build::Module, String>>();
 
         let mut config = prost_build::Config::new();
-        config.format(false).bytes(&["."]).prost_path("::femtopb");
+        config.format(false).bytes(["."]).prost_path("::femtopb");
 
         if self.derive_defmt {
             config.message_attribute(".", r#"#[derive(::defmt::Format)]"#);
@@ -266,6 +272,15 @@ fn transform(content: &str) -> String {
     for item in &mut file.items {
         transform_item(item, &scalar_only_oneofs);
     }
+
+    // Generated code is machine output, not hand-written idiomatic Rust, and its exact shape can
+    // shift with the prost/protobuf toolchain. Suppress lints for the whole generated module so it
+    // stays warning-clean without per-item annotations that would drift over time. `clippy::all`
+    // covers e.g. oneofs, which are legitimately large-variant enums that cannot be boxed in a
+    // no-alloc crate; `deprecated` covers the encode/decode code the derive generates for a
+    // message's own `#[deprecated]` fields, which it must read to round-trip them.
+    file.attrs
+        .insert(0, syn::parse_quote!(#![allow(clippy::all, deprecated)]));
 
     prettyplease::unparse(&file)
 }
@@ -564,7 +579,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         add_separator(&mut new_attr);
                         new_attr.push_str("tags = [");
                         new_attr.push_str(str.value().as_str());
-                        new_attr.push_str("]");
+                        new_attr.push(']');
                     }
                     _ => unreachable!(),
                 }
@@ -592,7 +607,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 panic!("unhandled prost attr: {:?}", path.get_ident().unwrap());
             }
         }
-        new_attr.push_str(")");
+        new_attr.push(')');
         let new_meta: syn::Meta = syn::parse_str(&new_attr).unwrap();
         attr.meta = new_meta;
     }
@@ -623,127 +638,124 @@ fn transform_field_type(
     metadata: &FieldMetadata,
     scalar_only_oneofs: &collections::HashSet<String>,
 ) {
-    match ty {
-        syn::Type::Path(syn::TypePath { ref mut path, .. }) => {
-            // Check for option/vec/box before is_enum/is_message to handle the optional/repeated
-            // messages/enums
-            if has_same_path_idents(path, "::core::option::Option") {
-                let generic_segment = path.segments.last_mut().unwrap();
-                transform_field_type(
-                    get_single_generic_arg(generic_segment),
-                    metadata,
-                    scalar_only_oneofs,
-                );
-            } else if has_same_path_idents(path, "::femtopb::alloc::boxed::Box")
-                || has_same_path_idents(path, "::prost::alloc::boxed::Box")
-            {
-                let generic_segment = path.segments.last_mut().unwrap();
-                let inner_ty = get_single_generic_arg(generic_segment);
-                transform_field_type(inner_ty, metadata, scalar_only_oneofs);
-                *ty = syn::parse2(quote::quote!(::femtopb::deferred::Deferred<'a, #inner_ty>))
-                    .unwrap();
-            } else if has_same_path_idents(path, "::femtopb::alloc::vec::Vec")
-                || has_same_path_idents(path, "::prost::alloc::vec::Vec")
-            {
-                let generic_segment = path.segments.last_mut().unwrap();
-                let inner_ty = get_single_generic_arg(generic_segment);
+    if let syn::Type::Path(syn::TypePath { ref mut path, .. }) = ty {
+        // Check for option/vec/box before is_enum/is_message to handle the optional/repeated
+        // messages/enums
+        if has_same_path_idents(path, "::core::option::Option") {
+            let generic_segment = path.segments.last_mut().unwrap();
+            transform_field_type(
+                get_single_generic_arg(generic_segment),
+                metadata,
+                scalar_only_oneofs,
+            );
+        } else if has_same_path_idents(path, "::femtopb::alloc::boxed::Box")
+            || has_same_path_idents(path, "::prost::alloc::boxed::Box")
+        {
+            let generic_segment = path.segments.last_mut().unwrap();
+            let inner_ty = get_single_generic_arg(generic_segment);
+            transform_field_type(inner_ty, metadata, scalar_only_oneofs);
+            *ty = syn::parse2(quote::quote!(::femtopb::deferred::Deferred<'a, #inner_ty>))
+                .unwrap();
+        } else if has_same_path_idents(path, "::femtopb::alloc::vec::Vec")
+            || has_same_path_idents(path, "::prost::alloc::vec::Vec")
+        {
+            let generic_segment = path.segments.last_mut().unwrap();
+            let inner_ty = get_single_generic_arg(generic_segment);
 
-                let base_type = if metadata.is_repeated {
-                    quote::quote!(::femtopb::repeated::Repeated)
-                } else if metadata.is_packed {
-                    quote::quote!(::femtopb::packed::Packed)
-                } else {
-                    panic!("Found vec field but field is not repeated or packed!")
-                };
-                let item_encoding = match metadata.is_scalar.as_deref() {
-                    Some("float") => {
-                        quote::quote!(::femtopb::item_encoding::Float)
-                    }
-                    Some("double") => {
-                        quote::quote!(::femtopb::item_encoding::Double)
-                    }
-                    Some("int32") => {
-                        quote::quote!(::femtopb::item_encoding::Int32)
-                    }
-                    Some("int64") => {
-                        quote::quote!(::femtopb::item_encoding::Int64)
-                    }
-                    Some("uint32") => {
-                        quote::quote!(::femtopb::item_encoding::UInt32)
-                    }
-                    Some("uint64") => {
-                        quote::quote!(::femtopb::item_encoding::UInt64)
-                    }
-                    Some("sint32") => {
-                        quote::quote!(::femtopb::item_encoding::SInt32)
-                    }
-                    Some("sint64") => {
-                        quote::quote!(::femtopb::item_encoding::SInt64)
-                    }
-                    Some("fixed32") => {
-                        quote::quote!(::femtopb::item_encoding::Fixed32)
-                    }
-                    Some("fixed64") => {
-                        quote::quote!(::femtopb::item_encoding::Fixed64)
-                    }
-                    Some("sfixed32") => {
-                        quote::quote!(::femtopb::item_encoding::SFixed32)
-                    }
-                    Some("sfixed64") => {
-                        quote::quote!(::femtopb::item_encoding::SFixed64)
-                    }
-                    Some("bool") => {
-                        quote::quote!(::femtopb::item_encoding::Bool)
-                    }
-                    Some("string") => {
-                        quote::quote!(::femtopb::item_encoding::String)
-                    }
-                    Some("bytes") => {
-                        quote::quote!(::femtopb::item_encoding::Bytes)
-                    }
-                    None => {
-                        if metadata.is_message {
-                            quote::quote!(::femtopb::item_encoding::Message<'a, #inner_ty<'a>>)
-                        } else if let Some(ref e) = metadata.is_enum {
-                            quote::quote!(::femtopb::item_encoding::Enum<#e>)
-                        } else {
-                            panic!("unable to determine item encoding!")
-                        }
-                    }
-                    Some(v) => panic!("unable to determine item encoding for {:?}", v),
-                };
-                transform_field_type(inner_ty, metadata, scalar_only_oneofs);
-                *ty =
-                    syn::parse2(quote::quote!(#base_type<'a, #inner_ty, #item_encoding>)).unwrap();
-            } else if metadata.is_message || metadata.is_oneof.is_some() {
-                // A scalar-only oneof is emitted without a lifetime parameter, so references to it
-                // must not add one; messages (and borrowing oneofs) always carry `<'a>`. The oneof
-                // is referenced as `parent_module::Enum`, matching the key used during collection.
-                let is_scalar_only_oneof = metadata.is_oneof.is_some() && {
-                    let n = path.segments.len();
-                    let parent = (n >= 2).then(|| path.segments[n - 2].ident.clone());
-                    let key = qualified_oneof_key(parent.as_ref(), &path.segments[n - 1].ident);
-                    scalar_only_oneofs.contains(&key)
-                };
-                let generic_segment = path.segments.last_mut().unwrap();
-                let ident = &generic_segment.ident;
-                if !is_scalar_only_oneof {
-                    *generic_segment = syn::parse2(quote::quote!(#ident<'a>)).unwrap();
+            let base_type = if metadata.is_repeated {
+                quote::quote!(::femtopb::repeated::Repeated)
+            } else if metadata.is_packed {
+                quote::quote!(::femtopb::packed::Packed)
+            } else {
+                panic!("Found vec field but field is not repeated or packed!")
+            };
+            let item_encoding = match metadata.is_scalar.as_deref() {
+                Some("float") => {
+                    quote::quote!(::femtopb::item_encoding::Float)
                 }
-            } else if let Some(enum_ty) = &metadata.is_enum {
-                *ty = syn::parse2(quote::quote!(::femtopb::enumeration::EnumValue<#enum_ty>))
-                    .unwrap();
-            } else if has_same_path_idents(path, "::femtopb::alloc::string::String")
-                || has_same_path_idents(path, "::prost::alloc::string::String")
-            {
-                *ty = syn::parse2(quote::quote!(&'a str)).unwrap();
-            } else if has_same_path_idents(path, "::prost::bytes::Bytes")
-                || has_same_path_idents(path, "::femtopb::bytes::Bytes")
-            {
-                *ty = syn::parse2(quote::quote!(&'a [u8])).unwrap();
+                Some("double") => {
+                    quote::quote!(::femtopb::item_encoding::Double)
+                }
+                Some("int32") => {
+                    quote::quote!(::femtopb::item_encoding::Int32)
+                }
+                Some("int64") => {
+                    quote::quote!(::femtopb::item_encoding::Int64)
+                }
+                Some("uint32") => {
+                    quote::quote!(::femtopb::item_encoding::UInt32)
+                }
+                Some("uint64") => {
+                    quote::quote!(::femtopb::item_encoding::UInt64)
+                }
+                Some("sint32") => {
+                    quote::quote!(::femtopb::item_encoding::SInt32)
+                }
+                Some("sint64") => {
+                    quote::quote!(::femtopb::item_encoding::SInt64)
+                }
+                Some("fixed32") => {
+                    quote::quote!(::femtopb::item_encoding::Fixed32)
+                }
+                Some("fixed64") => {
+                    quote::quote!(::femtopb::item_encoding::Fixed64)
+                }
+                Some("sfixed32") => {
+                    quote::quote!(::femtopb::item_encoding::SFixed32)
+                }
+                Some("sfixed64") => {
+                    quote::quote!(::femtopb::item_encoding::SFixed64)
+                }
+                Some("bool") => {
+                    quote::quote!(::femtopb::item_encoding::Bool)
+                }
+                Some("string") => {
+                    quote::quote!(::femtopb::item_encoding::String)
+                }
+                Some("bytes") => {
+                    quote::quote!(::femtopb::item_encoding::Bytes)
+                }
+                None => {
+                    if metadata.is_message {
+                        quote::quote!(::femtopb::item_encoding::Message<'a, #inner_ty<'a>>)
+                    } else if let Some(ref e) = metadata.is_enum {
+                        quote::quote!(::femtopb::item_encoding::Enum<#e>)
+                    } else {
+                        panic!("unable to determine item encoding!")
+                    }
+                }
+                Some(v) => panic!("unable to determine item encoding for {:?}", v),
+            };
+            transform_field_type(inner_ty, metadata, scalar_only_oneofs);
+            *ty =
+                syn::parse2(quote::quote!(#base_type<'a, #inner_ty, #item_encoding>)).unwrap();
+        } else if metadata.is_message || metadata.is_oneof.is_some() {
+            // A scalar-only oneof is emitted without a lifetime parameter, so references to it
+            // must not add one; messages (and borrowing oneofs) always carry `<'a>`. The oneof
+            // is referenced as `parent_module::Enum`, matching the key used during collection.
+            let is_scalar_only_oneof = metadata.is_oneof.is_some() && {
+                let n = path.segments.len();
+                let parent = (n >= 2).then(|| path.segments[n - 2].ident.clone());
+                let key = qualified_oneof_key(parent.as_ref(), &path.segments[n - 1].ident);
+                scalar_only_oneofs.contains(&key)
+            };
+            let generic_segment = path.segments.last_mut().unwrap();
+            let ident = &generic_segment.ident;
+            if !is_scalar_only_oneof {
+                *generic_segment = syn::parse2(quote::quote!(#ident<'a>)).unwrap();
             }
+        } else if let Some(enum_ty) = &metadata.is_enum {
+            *ty = syn::parse2(quote::quote!(::femtopb::enumeration::EnumValue<#enum_ty>))
+                .unwrap();
+        } else if has_same_path_idents(path, "::femtopb::alloc::string::String")
+            || has_same_path_idents(path, "::prost::alloc::string::String")
+        {
+            *ty = syn::parse2(quote::quote!(&'a str)).unwrap();
+        } else if has_same_path_idents(path, "::prost::bytes::Bytes")
+            || has_same_path_idents(path, "::femtopb::bytes::Bytes")
+        {
+            *ty = syn::parse2(quote::quote!(&'a [u8])).unwrap();
         }
-        _ => {}
     }
 }
 
@@ -810,7 +822,7 @@ fn has_same_path_idents(path: &syn::Path, other: &str) -> bool {
     // fix it if it ever becomes a problem
     let parsed_other: syn::Path = syn::parse_str(other).unwrap();
     path.leading_colon.is_some() == parsed_other.leading_colon.is_some()
-        && path_segments(&path) == path_segments(&parsed_other)
+        && path_segments(path) == path_segments(&parsed_other)
 }
 
 fn get_single_generic_arg(segment: &mut syn::PathSegment) -> &mut syn::Type {
@@ -836,6 +848,17 @@ fn path_segments(p: &syn::Path) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Strips the lint-suppression header that `transform` prepends to every generated module, so
+    /// the body-comparison tests below can assert on the transformed code itself.
+    fn strip_generated_header(generated: &str) -> String {
+        generated
+            .trim()
+            .strip_prefix("#![allow(clippy::all, deprecated)]")
+            .expect("generated code should start with the lint-suppression header")
+            .trim()
+            .to_string()
+    }
 
     #[test]
     fn transform_message_one_scalar() {
@@ -864,7 +887,7 @@ pub struct NestedMessage<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -995,7 +1018,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -1083,7 +1106,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -1229,7 +1252,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -1349,7 +1372,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -1389,7 +1412,7 @@ pub enum NestedEnum {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 
     #[test]
@@ -1558,6 +1581,6 @@ pub struct TestAllTypes {
         let expected = r#"
 "#;
         let actual = transform(original);
-        assert_eq!(actual.trim(), expected.trim());
+        assert_eq!(strip_generated_header(&actual), expected.trim());
     }
 }
