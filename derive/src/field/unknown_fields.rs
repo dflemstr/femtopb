@@ -54,13 +54,16 @@ impl Field {
         matched_tag: &proc_macro2::TokenStream,
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
-        msg_buf: &proc_macro2::TokenStream,
+        _msg_buf: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
         known_tags: &[u32],
     ) -> syn::Result<proc_macro2::TokenStream> {
         let known_tags = quote::quote!([#(#known_tags),*]);
+        // `field_start` is the local the generated decode loop binds to the buffer position before
+        // the current field's key, so the retained region can be anchored at the first unknown field
+        // rather than at the start of the whole message.
         Ok(quote::quote! {
-            ::femtopb::runtime::unknown_fields::decode(&#known_tags, #matched_tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
+            ::femtopb::runtime::unknown_fields::decode(&#known_tags, #matched_tag, #wire_type, field_start, #cursor, &mut #field)?;
         })
     }
 

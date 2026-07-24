@@ -8,14 +8,19 @@ pub fn decode<'a>(
     known_tags: &'static [u32],
     matched_tag: u32,
     wire_type: encoding::WireType,
-    msg_buf: &'a [u8],
+    field_start: &'a [u8],
     remaining: &mut &'a [u8],
     field: &mut unknown_fields::UnknownFields<'a>,
 ) -> Result<(), error::DecodeError> {
+    // `field_start` is the buffer as it stood at the start of this field (before its key). On the
+    // first unknown field we anchor the retained region there; on every unknown field we then grow
+    // the region to the field's end, so it spans exactly from the first to the last unknown field.
     if field.is_unpopulated() {
-        *field = unknown_fields::UnknownFields::from_msg_buf(known_tags, msg_buf, true);
+        *field = unknown_fields::UnknownFields::anchored(known_tags, field_start);
     }
-    encoding::skip_field(wire_type, matched_tag, remaining)
+    encoding::skip_field(wire_type, matched_tag, remaining)?;
+    field.extend_to(remaining);
+    Ok(())
 }
 
 /// Walks the retained message buffer and invokes `visit` with the raw bytes of each field whose tag
@@ -30,7 +35,7 @@ where
     F: FnMut(&[u8]),
 {
     let known_tags = field.known_tags();
-    let mut buf = field.msg_buf();
+    let mut buf = field.region();
     while !buf.is_empty() {
         let before = buf;
         let Ok((tag, wire_type)) = encoding::decode_key(&mut buf) else {

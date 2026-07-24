@@ -96,6 +96,9 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
         quote::quote! {
             let mut remaining = msg_buf;
             while !remaining.is_empty() {
+                // The buffer as it stands before this field's key; the unknown-fields handling uses
+                // it to remember where an unknown field begins.
+                let field_start = remaining;
                 let (tag, wire_type) = ::femtopb::encoding::decode_key(&mut remaining)?;
                 match tag {
                     #(#decode_match_arms)*
