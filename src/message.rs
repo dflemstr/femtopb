@@ -69,7 +69,7 @@ pub trait Message<'a>: Clone {
     /// the end of the decoded message; it will point to the empty slice if the buffer space was
     /// used up completely.  You can use this if you want to chain multiple reads from the same
     /// buffer.
-    fn decode_length_delimited<B>(buf: &mut &'a [u8]) -> Result<Self, error::DecodeError>
+    fn decode_length_delimited(buf: &mut &'a [u8]) -> Result<Self, error::DecodeError>
     where
         Self: Sized,
     {

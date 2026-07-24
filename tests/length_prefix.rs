@@ -16,7 +16,7 @@ fn decode_length_delimited_rejects_length_beyond_buffer() {
     // panic via `slice::split_at`; it must now surface a clean `BufferUnderflow` error instead.
     let buf = [0x0Au8, 0x08];
     let mut cursor: &[u8] = &buf;
-    let err = Tiny::decode_length_delimited::<()>(&mut cursor).unwrap_err();
+    let err = Tiny::decode_length_delimited(&mut cursor).unwrap_err();
     assert_eq!(err, femtopb::error::DecodeError::BufferUnderflow);
 }
 
@@ -36,7 +36,7 @@ fn decode_length_delimited_reads_exactly_one_message() {
     buf.extend_from_slice(&[0xDE, 0xAD]); // trailing bytes that must be left untouched
 
     let mut cursor: &[u8] = &buf;
-    let decoded = Tiny::decode_length_delimited::<()>(&mut cursor).unwrap();
+    let decoded = Tiny::decode_length_delimited(&mut cursor).unwrap();
     assert_eq!(decoded, original);
     assert_eq!(cursor, &[0xDE, 0xAD]);
 }
