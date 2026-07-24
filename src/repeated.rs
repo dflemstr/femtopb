@@ -26,6 +26,10 @@ where
     Empty,
     MessageBuffer {
         msg_buf: list::MessageBuffer<'a>,
+        /// Remaining bytes of a packed occurrence currently being iterated. A repeated field may
+        /// legitimately be encoded using the packed wire format (this is the proto3 default), so we
+        /// accept both; this holds the leftover of such a chunk between calls.
+        packed_chunk: &'a [u8],
         phantom: marker::PhantomData<E>,
     },
     Slice(slice::Iter<'a, A>),
@@ -98,6 +102,7 @@ where
             list::List::Empty => IterRepr::Empty,
             list::List::MessageBuffer(msg_buf) => IterRepr::MessageBuffer {
                 msg_buf,
+                packed_chunk: &[],
                 phantom: marker::PhantomData,
             },
             list::List::Slice(slice) => IterRepr::Slice(slice.iter()),
@@ -214,9 +219,10 @@ where
             IterRepr::Empty => None,
             IterRepr::MessageBuffer {
                 ref mut msg_buf,
+                ref mut packed_chunk,
                 phantom: _,
             } => {
-                let result = next_item::<A, E>(msg_buf);
+                let result = next_item::<A, E>(msg_buf, packed_chunk);
                 if result.is_err() {
                     // If an error has occurred, we are in a bad state, so prevent further iteration
                     self.0 = IterRepr::Empty;
@@ -240,11 +246,17 @@ where
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn next_item<'a, A, E>(
     msg_buf: &mut list::MessageBuffer<'a>,
+    packed_chunk: &mut &'a [u8],
 ) -> Result<Option<A>, error::DecodeError>
 where
     A: 'a,
     E: item_encoding::ItemEncoding<'a, A>,
 {
+    if !packed_chunk.is_empty() {
+        // We're partway through a packed occurrence; continue decoding elements from it.
+        return Ok(Some(E::decode_single_value(packed_chunk)?));
+    }
+
     let cursor = &mut msg_buf.data;
     while !cursor.is_empty() {
         let (tag, wire_type) = encoding::decode_key(cursor)?;
@@ -252,8 +264,26 @@ where
             // At this point, we know for sure that this is a field tag occurrence that concerns
             // us, but which encoding/wire type was used?
             if wire_type == E::WIRE_TYPE {
-                // Decode this single value
+                // Decode this single value (the unpacked case; also the only case for composite
+                // element types such as messages/strings/bytes, whose wire type is length-delimited)
                 return Ok(Some(E::decode_single_value(cursor)?));
+            } else if wire_type == encoding::WireType::LengthDelimited {
+                // A scalar repeated field encoded using the packed wire format. (`E::WIRE_TYPE`
+                // is not length-delimited here, or the branch above would have matched.) Parse the
+                // chunk and decode its first element; the remainder is kept for subsequent calls.
+                let len = encoding::decode_varint(cursor)?;
+                let len = usize::try_from(len)
+                    .map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
+                if let Some((chunk, rest)) = cursor.split_at_checked(len) {
+                    *cursor = rest;
+                    if !chunk.is_empty() {
+                        *packed_chunk = chunk;
+                        return Ok(Some(E::decode_single_value(packed_chunk)?));
+                    }
+                    // An empty packed chunk contributes no elements; keep scanning.
+                } else {
+                    return Err(error::DecodeError::BufferUnderflow);
+                }
             } else {
                 return Err(error::DecodeError::UnexpectedWireTypeValue {
                     actual: wire_type,
