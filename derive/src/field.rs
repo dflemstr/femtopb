@@ -133,7 +133,7 @@ impl Field {
             Field::Message(ref f) => f.encoded_len_expr(field).map(Some),
             Field::Enumeration(ref f) => f.encoded_len_expr(field).map(Some),
             Field::Oneof(ref f) => f.encoded_len_expr(field).map(Some),
-            Field::UnknownFields(_) => Ok(None),
+            Field::UnknownFields(ref f) => f.encoded_len_expr(field).map(Some),
         }
     }
 

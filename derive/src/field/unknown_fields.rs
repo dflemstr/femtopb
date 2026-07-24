@@ -13,10 +13,21 @@ impl Field {
 
     pub fn encode_raw_block(
         &self,
-        _field: &proc_macro2::TokenStream,
-        _cursor: &proc_macro2::TokenStream,
+        field: &proc_macro2::TokenStream,
+        cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
-        Ok(quote::quote!()) // TODO
+        Ok(quote::quote! {
+            ::femtopb::runtime::unknown_fields::encode(&#field, #cursor);
+        })
+    }
+
+    pub fn encoded_len_expr(
+        &self,
+        field: &proc_macro2::TokenStream,
+    ) -> syn::Result<proc_macro2::TokenStream> {
+        Ok(quote::quote! {
+            ::femtopb::runtime::unknown_fields::encoded_len(&#field)
+        })
     }
 
     pub fn decode_match_arm(
@@ -55,9 +66,11 @@ impl Field {
 
     pub fn clear_block(
         &self,
-        _field: &proc_macro2::TokenStream,
+        field: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
-        Ok(quote::quote!()) // TODO
+        Ok(quote::quote! {
+            ::femtopb::runtime::unknown_fields::clear(&mut #field);
+        })
     }
 
     pub fn default_expr(&self) -> syn::Result<proc_macro2::TokenStream> {

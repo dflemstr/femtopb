@@ -49,4 +49,15 @@ impl<'a> UnknownFields<'a> {
     pub(crate) fn is_unpopulated(&self) -> bool {
         !self.found_unknown_tag
     }
+
+    /// The tags that belong to *known* fields of the surrounding message, used from runtime code to
+    /// tell known fields apart from the unknown ones when re-encoding.
+    pub(crate) fn known_tags(&self) -> &'static [u32] {
+        self.known_tags
+    }
+
+    /// The buffer of the surrounding message that unknown fields are copied from when re-encoding.
+    pub(crate) fn msg_buf(&self) -> &'a [u8] {
+        self.msg_buf
+    }
 }
