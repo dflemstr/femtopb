@@ -27,6 +27,19 @@ jobs:
     - name: Check for defmt end-to-end support
       run: cargo build --package test-build-protos --features defmt
 
+  # Guards against clippy regressions. Runs with both the default feature set and all features so
+  # that feature-gated code paths are linted too. `-D warnings` turns any lint into a build failure.
+  clippy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Clippy (default features)
+      run: cargo clippy --workspace --all-targets -- -D warnings
+    - name: Clippy (all features)
+      run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
   # Exercises the crate on a 32-bit target where `usize` is narrower than `u64`, so that
   # length-prefix handling (which differs between 16/32-bit and 64-bit targets) is actually
   # covered rather than only built.
