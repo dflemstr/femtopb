@@ -264,11 +264,24 @@ pub(crate) fn check_wire_type(
     }
 }
 
+/// The maximum group nesting depth accepted by [`skip_field`].
+///
+/// Skipping a field with the `StartGroup` wire type recurses once per level of group nesting.
+/// Since each nested group only costs a single-byte key on the wire, an attacker (or a corrupt
+/// buffer) could otherwise force arbitrarily deep recursion and overflow the stack — a real
+/// concern on the constrained targets this crate is meant for.  Once this many levels of nesting
+/// have been entered, [`skip_field`] returns [`error::DecodeError::RecursionLimitReached`] instead
+/// of recursing further.
+pub const RECURSION_LIMIT: u32 = 100;
+
 /// Skips a field of the given wire type and tag.
 ///
 /// On success, the cursor will be updated to point past the skipped field.
 /// On failure, the cursor will be in an undefined inconsistent state, since a failure in this
 /// function means that the buffer is corrupted.
+///
+/// Skipping deeply nested group fields is bounded by [`RECURSION_LIMIT`]; exceeding it yields
+/// [`error::DecodeError::RecursionLimitReached`] rather than overflowing the stack.
 #[inline]
 // This function can not be proven to be panic-free in isolation, likely because of the recursion.
 // See https://github.com/dtolnay/no-panic/issues/56
@@ -278,6 +291,15 @@ pub fn skip_field(
     wire_type: WireType,
     tag: u32,
     cursor: &mut &[u8],
+) -> Result<(), error::DecodeError> {
+    skip_field_at_depth(wire_type, tag, cursor, 0)
+}
+
+fn skip_field_at_depth(
+    wire_type: WireType,
+    tag: u32,
+    cursor: &mut &[u8],
+    depth: u32,
 ) -> Result<(), error::DecodeError> {
     let len = match wire_type {
         WireType::Varint => {
@@ -301,7 +323,7 @@ pub fn skip_field(
                         return Err(error::DecodeError::UnexpectedEndGroupTag);
                     }
                 }
-                _ => skip_field_in_group(inner_wire_type, inner_tag, cursor)?,
+                _ => skip_field_in_group(inner_wire_type, inner_tag, cursor, depth)?,
             }
         },
         WireType::EndGroup => return Err(error::DecodeError::UnexpectedEndGroupTag),
@@ -325,8 +347,12 @@ fn skip_field_in_group(
     wire_type: WireType,
     tag: u32,
     cursor: &mut &[u8],
+    depth: u32,
 ) -> Result<(), error::DecodeError> {
-    skip_field(wire_type, tag, cursor)
+    if depth >= RECURSION_LIMIT {
+        return Err(error::DecodeError::RecursionLimitReached);
+    }
+    skip_field_at_depth(wire_type, tag, cursor, depth + 1)
 }
 
 #[cfg(test)]
@@ -412,5 +438,32 @@ mod tests {
             &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x02];
 
         decode_varint(&mut u64_max_plus_one).expect_err("decoding u64::MAX + 1 succeeded");
+    }
+
+    #[test]
+    fn skip_field_bounds_group_recursion() {
+        // A single-byte `StartGroup` key for tag 1 (tag << 3 | 3 = 0b1011 = 0x0B), repeated many
+        // times, would otherwise recurse once per byte and overflow the stack.
+        let start_group = ((1u8 << 3) | WireType::StartGroup as u8) as u8;
+        let deeply_nested = vec![start_group; (RECURSION_LIMIT as usize) + 10];
+
+        let mut cursor: &[u8] = &deeply_nested;
+        let err = skip_field(WireType::StartGroup, 1, &mut cursor)
+            .expect_err("deeply nested groups should be rejected");
+        assert_eq!(err, error::DecodeError::RecursionLimitReached);
+    }
+
+    #[test]
+    fn skip_field_allows_shallow_groups() {
+        // A well-formed, shallowly nested group (group tag 1 containing a varint field tag 2)
+        // should still be skipped successfully. The caller consumes the outer `StartGroup` key
+        // before invoking `skip_field`, so the cursor starts at the group's contents.
+        let inner_varint_key = (2u8 << 3) | WireType::Varint as u8;
+        let end_group = (1u8 << 3) | WireType::EndGroup as u8;
+        let buf = [inner_varint_key, 0x2A, end_group];
+
+        let mut cursor: &[u8] = &buf;
+        skip_field(WireType::StartGroup, 1, &mut cursor).expect("shallow group should skip");
+        assert!(cursor.is_empty());
     }
 }
