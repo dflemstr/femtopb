@@ -61,9 +61,11 @@ pub fn encode_packed<E>(
 {
     if !values.is_empty() {
         encoding::encode_key(tag, encoding::WireType::LengthDelimited, cursor);
+        // Only successfully-decoded items are written below, so size the length prefix to match;
+        // a trailing iteration error (from a corrupt backing buffer) contributes 0, not one byte.
         let len: usize = values
             .iter()
-            .map(|r| encoding::encoded_len_varint(r.map(|v| v.to_raw()).unwrap_or(0) as u64))
+            .map(|r| r.map(|v| encoding::encoded_len_varint(v.to_raw() as u64)).unwrap_or(0))
             .sum();
         encoding::encode_varint(len as u64, cursor);
 
@@ -133,14 +135,13 @@ pub fn encoded_len_repeated<E>(
 where
     E: enumeration::Enumeration,
 {
-    encoding::key_len(tag) * values.len()
-        + values
-            .iter()
-            .map(|r| {
-                r.map(|v| encoding::encoded_len_varint(v.to_raw() as u64))
-                    .unwrap_or(0)
-            })
-            .sum::<usize>()
+    values
+        .iter()
+        .map(|r| {
+            r.map(|v| encoding::key_len(tag) + encoding::encoded_len_varint(v.to_raw() as u64))
+                .unwrap_or(0)
+        })
+        .sum::<usize>()
 }
 
 #[inline]
