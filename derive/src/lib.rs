@@ -43,7 +43,7 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
 
     let known_tags = fields
         .iter()
-        .flat_map(|&(_, ref f)| f.tags())
+        .flat_map(|(_, f)| f.tags())
         .collect::<Vec<_>>();
 
     let decode_remaining = quote::quote!(&mut remaining);

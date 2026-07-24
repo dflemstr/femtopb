@@ -220,8 +220,8 @@ impl Spec {
         field_span: proc_macro2::Span,
         attrs: &[syn::Attribute],
     ) -> syn::Result<(proc_macro2::Span, Self)> {
-        if let Some(attr) = attrs.into_iter().find(|a| a.path().is_ident("femtopb")) {
-            let spec = Self::parse(&attr)?;
+        if let Some(attr) = attrs.iter().find(|a| a.path().is_ident("femtopb")) {
+            let spec = Self::parse(attr)?;
             Ok((attr.span(), spec))
         } else {
             Err(syn::Error::new(
@@ -336,7 +336,7 @@ impl Spec {
                 let tags = content.parse_terminated(syn::LitInt::parse, syn::Token![,])?;
                 let tags = tags
                     .into_iter()
-                    .map(|i| Ok(i.base10_parse()?))
+                    .map(|i| i.base10_parse())
                     .collect::<syn::Result<Vec<_>>>()?;
                 spec.set_tags(path.span(), tags)?;
                 Ok(())
