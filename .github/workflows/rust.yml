@@ -27,6 +27,24 @@ jobs:
     - name: Check for defmt end-to-end support
       run: cargo build --package test-build-protos --features defmt
 
+  # Verifies the crate's core promise: that the library compiles for a bare-metal `no_std` target
+  # (no operating system, no `alloc`). Catches accidental use of `std`/`alloc` or host-only
+  # assumptions that a host build would not surface. Covers each optional feature too.
+  no-std:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Add bare-metal target
+      run: rustup target add thumbv7em-none-eabihf
+    - name: Build library for bare-metal (default features)
+      run: cargo build --package femtopb --target thumbv7em-none-eabihf --verbose
+    - name: Build library for bare-metal (defmt)
+      run: cargo build --package femtopb --target thumbv7em-none-eabihf --features defmt --verbose
+    - name: Build library for bare-metal (thiserror)
+      run: cargo build --package femtopb --target thumbv7em-none-eabihf --features thiserror --verbose
+
   # Guards against clippy regressions. Runs with both the default feature set and all features so
   # that feature-gated code paths are linted too. `-D warnings` turns any lint into a build failure.
   clippy:
