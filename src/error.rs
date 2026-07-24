@@ -56,11 +56,26 @@ pub enum DecodeError {
     #[cfg_attr(feature = "thiserror",
         error("Invalid UTF-8 data: Valid up to {}. Error length: {}",
             valid_up_to,
-            error_len.map_or("N/A", |value| "{value}")))]
+            OptionalLen(error_len)))]
     InvalidUtf8 {
         valid_up_to: usize,
         error_len: Option<usize>,
     },
+}
+
+/// Formats an optional error length for the [`DecodeError::InvalidUtf8`] message, rendering
+/// `Some(n)` as `n` and `None` as `N/A` without any allocation.
+#[cfg(feature = "thiserror")]
+struct OptionalLen<'a>(&'a Option<usize>);
+
+#[cfg(feature = "thiserror")]
+impl core::fmt::Display for OptionalLen<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self.0 {
+            Some(len) => write!(f, "{len}"),
+            None => f.write_str("N/A"),
+        }
+    }
 }
 
 /// A Protobuf message encoding error.
