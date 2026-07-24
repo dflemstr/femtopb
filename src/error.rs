@@ -18,6 +18,14 @@ pub enum DecodeError {
     /// The decoded varint was larger than expected; the too-large value is enclosed.
     #[cfg_attr(feature = "thiserror", error("Varint larger than expected: {0}"))]
     VarintTooLarge(u64),
+    /// A length-delimited field declared a length that is a valid `u64` but does not fit in a
+    /// `usize` on the current platform, so the field cannot be addressed on this architecture.
+    ///
+    /// Unlike [`VarintTooLarge`](Self::VarintTooLarge), this does not necessarily indicate a
+    /// corrupt buffer: the same message may decode successfully on a target with a wider `usize`
+    /// (for example a 64-bit platform). The offending length is enclosed.
+    #[cfg_attr(feature = "thiserror", error("Length {0} does not fit in a usize on this platform"))]
+    LengthTooLargeForPlatform(u64),
     /// The provided buffer was too short to be able to decode the desired data.
     #[cfg_attr(feature = "thiserror", error("Provided buffer is too short"))]
     BufferUnderflow,
@@ -56,11 +64,26 @@ pub enum DecodeError {
     #[cfg_attr(feature = "thiserror",
         error("Invalid UTF-8 data: Valid up to {}. Error length: {}",
             valid_up_to,
-            error_len.map_or("N/A", |value| "{value}")))]
+            OptionalLen(error_len)))]
     InvalidUtf8 {
         valid_up_to: usize,
         error_len: Option<usize>,
     },
+}
+
+/// Formats an optional error length for the [`DecodeError::InvalidUtf8`] message, rendering
+/// `Some(n)` as `n` and `None` as `N/A` without any allocation.
+#[cfg(feature = "thiserror")]
+struct OptionalLen<'a>(&'a Option<usize>);
+
+#[cfg(feature = "thiserror")]
+impl core::fmt::Display for OptionalLen<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self.0 {
+            Some(len) => write!(f, "{len}"),
+            None => f.write_str("N/A"),
+        }
+    }
 }
 
 /// A Protobuf message encoding error.
@@ -86,5 +109,47 @@ impl EncodeError {
             required,
             remaining,
         }
+    }
+}
+
+#[cfg(all(test, feature = "thiserror"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn invalid_utf8_display_with_error_len() {
+        let e = DecodeError::InvalidUtf8 {
+            valid_up_to: 3,
+            error_len: Some(2),
+        };
+        assert_eq!(
+            e.to_string(),
+            "Invalid UTF-8 data: Valid up to 3. Error length: 2"
+        );
+    }
+
+    #[test]
+    fn invalid_utf8_display_without_error_len() {
+        let e = DecodeError::InvalidUtf8 {
+            valid_up_to: 3,
+            error_len: None,
+        };
+        assert_eq!(
+            e.to_string(),
+            "Invalid UTF-8 data: Valid up to 3. Error length: N/A"
+        );
+    }
+
+    #[test]
+    fn length_too_large_for_platform_display_is_distinct() {
+        // The platform-length error must not be confused with the generic varint-too-large error.
+        assert_ne!(
+            DecodeError::VarintTooLarge(42).to_string(),
+            DecodeError::LengthTooLargeForPlatform(42).to_string()
+        );
+        assert_eq!(
+            DecodeError::LengthTooLargeForPlatform(42).to_string(),
+            "Length 42 does not fit in a usize on this platform"
+        );
     }
 }

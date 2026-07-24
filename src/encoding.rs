@@ -289,7 +289,8 @@ pub fn skip_field(
         WireType::LengthDelimited => {
             // decode_varint advances the cursor; now skip more bytes corresponding to
             // the returned value
-            decode_varint(cursor)? as usize
+            let len = decode_varint(cursor)?;
+            usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?
         }
         WireType::StartGroup => loop {
             let (inner_tag, inner_wire_type) = decode_key(cursor)?;

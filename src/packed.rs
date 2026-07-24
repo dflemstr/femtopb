@@ -265,7 +265,7 @@ where
                 if wire_type == encoding::WireType::LengthDelimited {
                     let len = encoding::decode_varint(cursor)?;
                     let len = usize::try_from(len)
-                        .map_err(|_| error::DecodeError::VarintTooLarge(len))?;
+                        .map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
                     // It would be odd to get a packed field with length zero, but technically
                     // possible...
                     if len > 0 {
