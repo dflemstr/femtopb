@@ -1,4 +1,4 @@
-#[allow(clippy::derive_partial_eq_without_eq)]
+#![allow(clippy::all, deprecated)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct PublicImportMessage<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -6,7 +6,6 @@ pub struct PublicImportMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct ImportMessage<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -40,9 +39,9 @@ impl ImportEnum {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            ImportEnum::ImportFoo => "IMPORT_FOO",
-            ImportEnum::ImportBar => "IMPORT_BAR",
-            ImportEnum::ImportBaz => "IMPORT_BAZ",
+            Self::ImportFoo => "IMPORT_FOO",
+            Self::ImportBar => "IMPORT_BAR",
+            Self::ImportBaz => "IMPORT_BAZ",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -82,9 +81,9 @@ impl ImportEnumForMap {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            ImportEnumForMap::Unknown => "UNKNOWN",
-            ImportEnumForMap::Foo => "FOO",
-            ImportEnumForMap::Bar => "BAR",
+            Self::Unknown => "UNKNOWN",
+            Self::Foo => "FOO",
+            Self::Bar => "BAR",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
