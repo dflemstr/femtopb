@@ -49,7 +49,11 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
     let decode_remaining = quote::quote!(&mut remaining);
     let encode_cursor = quote::quote!(cursor);
     let wire_type = quote::quote!(wire_type);
-    let msg_buf = quote::quote!(msg_buf);
+    // The buffer position at the start of the current field (before its key). Passing this — rather
+    // than the whole message buffer — to each field's decoder lets the lazily-parsed field types
+    // (`repeated`/`packed`) and `unknown_fields` anchor their retained slice at their first
+    // occurrence, so re-iterating/re-encoding them skips the fields that precede it.
+    let field_start = quote::quote!(field_start);
 
     let encode_raw_blocks = fields
         .iter()
@@ -66,7 +70,7 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
                 &quote::quote!(tag),
                 &quote::quote!(value.#id),
                 &wire_type,
-                &msg_buf,
+                &field_start,
                 &decode_remaining,
                 &known_tags,
             )
@@ -96,8 +100,8 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
         quote::quote! {
             let mut remaining = msg_buf;
             while !remaining.is_empty() {
-                // The buffer as it stands before this field's key; the unknown-fields handling uses
-                // it to remember where an unknown field begins.
+                // The buffer as it stands before this field's key; the lazily-parsed and
+                // unknown-fields decoders use it to anchor their retained slice at this field.
                 let field_start = remaining;
                 let (tag, wire_type) = ::femtopb::encoding::decode_key(&mut remaining)?;
                 match tag {
