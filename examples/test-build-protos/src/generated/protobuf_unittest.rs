@@ -1,6 +1,6 @@
+#![allow(clippy::all, deprecated)]
 /// This proto includes every type of field in both singular and repeated
 /// forms.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestAllTypes<'a> {
     /// Singular
@@ -284,7 +284,6 @@ pub struct TestAllTypes<'a> {
 }
 /// Nested message and enum types in `TestAllTypes`.
 pub mod test_all_types {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         /// The field name "b" fails to compile in proto1 because it conflicts with
@@ -323,10 +322,10 @@ pub mod test_all_types {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
-                NestedEnum::Neg => "NEG",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
+                Self::Neg => "NEG",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -341,7 +340,6 @@ pub mod test_all_types {
         }
     }
     /// For oneof test
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum OneofField<'a> {
@@ -364,7 +362,6 @@ pub mod test_all_types {
     }
 }
 /// This proto includes a recursively nested message.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct NestedTestAllTypes<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
@@ -388,7 +385,6 @@ pub struct NestedTestAllTypes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDeprecatedFields<'a> {
     #[deprecated]
@@ -409,23 +405,19 @@ pub struct TestDeprecatedFields<'a> {
         ::femtopb::deferred::Deferred<'a, TestDeprecatedFields<'a>>,
     >,
     #[femtopb(oneof, tags = [2])]
-    pub oneof_fields: ::core::option::Option<test_deprecated_fields::OneofFields<'a>>,
+    pub oneof_fields: ::core::option::Option<test_deprecated_fields::OneofFields>,
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Nested message and enum types in `TestDeprecatedFields`.
 pub mod test_deprecated_fields {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
-    pub enum OneofFields<'a> {
+    pub enum OneofFields {
         #[femtopb(int32, tag = 2)]
         DeprecatedInt32InOneof(i32),
-        #[femtopb(phantom)]
-        _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestDeprecatedMessage<'a> {
     #[femtopb(unknown_fields)]
@@ -433,7 +425,6 @@ pub struct TestDeprecatedMessage<'a> {
 }
 /// Define these after TestAllTypes to make sure the compiler can handle
 /// that.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct ForeignMessage<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -443,19 +434,16 @@ pub struct ForeignMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestReservedFields<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestAllExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMixedFieldsAndExtensions<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -465,7 +453,6 @@ pub struct TestMixedFieldsAndExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestGroup<'a> {
     ///   optional group OptionalGroup = 16 {
@@ -481,19 +468,16 @@ pub struct TestGroup<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestGroupExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestNestedExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestChildExtension<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -507,7 +491,6 @@ pub struct TestChildExtension<'a> {
 }
 /// Emulates wireformat data of TestChildExtension with dynamic extension
 /// (DynamicExtension).
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestChildExtensionData<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -523,7 +506,6 @@ pub struct TestChildExtensionData<'a> {
 }
 /// Nested message and enum types in `TestChildExtensionData`.
 pub mod test_child_extension_data {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct NestedTestAllExtensionsData<'a> {
         #[femtopb(message, optional, tag = 409707008)]
@@ -535,7 +517,6 @@ pub mod test_child_extension_data {
     }
     /// Nested message and enum types in `NestedTestAllExtensionsData`.
     pub mod nested_test_all_extensions_data {
-        #[allow(clippy::derive_partial_eq_without_eq)]
         #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
         pub struct NestedDynamicExtensions<'a> {
             #[femtopb(int32, optional, tag = 1)]
@@ -547,7 +528,6 @@ pub mod test_child_extension_data {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedChildExtension<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -559,7 +539,6 @@ pub struct TestNestedChildExtension<'a> {
 }
 /// Emulates wireformat data of TestNestedChildExtension with dynamic extension
 /// (DynamicExtension).
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedChildExtensionData<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -571,7 +550,6 @@ pub struct TestNestedChildExtensionData<'a> {
 }
 /// Required and closed enum fields are considered unknown fields if the value is
 /// not valid. We need to make sure it functions as expected.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnum<'a> {
     #[femtopb(enumeration, required, tag = 1)]
@@ -583,7 +561,6 @@ pub struct TestRequiredEnum<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// TestRequiredEnum + using enum values that won't fit to 64 bitmask.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnumNoMask<'a> {
     #[femtopb(enumeration, required, tag = 1)]
@@ -626,10 +603,10 @@ pub mod test_required_enum_no_mask {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Unspecified => "UNSPECIFIED",
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -644,7 +621,6 @@ pub mod test_required_enum_no_mask {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredEnumMulti<'a> {
     /// Intentionally placed in descending field number to force sorting in closed
@@ -693,10 +669,10 @@ pub mod test_required_enum_multi {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Unspecified => "UNSPECIFIED",
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -711,7 +687,6 @@ pub mod test_required_enum_multi {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredNoMaskMulti<'a> {
     /// Intentionally placed in descending field number to force sorting in closed
@@ -769,10 +744,10 @@ pub mod test_required_no_mask_multi {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Unspecified => "UNSPECIFIED",
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -792,7 +767,6 @@ pub mod test_required_no_mask_multi {
 /// do anything with it.  Note that we don't need to test every type of
 /// required filed because the code output is basically identical to
 /// optional fields for all types.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestRequired<'a> {
     #[femtopb(int32, required, tag = 1)]
@@ -869,7 +843,6 @@ pub struct TestRequired<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredForeign<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -888,7 +861,6 @@ pub struct TestRequiredForeign<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredMessage<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -904,7 +876,6 @@ pub struct TestRequiredMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedRequiredForeign<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
@@ -928,7 +899,6 @@ pub struct TestNestedRequiredForeign<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that we can use NestedMessage from outside TestAllTypes.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestForeignNested<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -937,7 +907,6 @@ pub struct TestForeignNested<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// TestEmptyMessage is used to test unknown field support.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestEmptyMessage<'a> {
     #[femtopb(unknown_fields)]
@@ -945,14 +914,12 @@ pub struct TestEmptyMessage<'a> {
 }
 /// Like above, but declare all field numbers as potential extensions.  No
 /// actual extensions should ever be defined for this type.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestEmptyMessageWithExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Needed for a Python test.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestPickleNestedMessage<'a> {
     #[femtopb(unknown_fields)]
@@ -960,7 +927,6 @@ pub struct TestPickleNestedMessage<'a> {
 }
 /// Nested message and enum types in `TestPickleNestedMessage`.
 pub mod test_pickle_nested_message {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(int32, optional, tag = 1)]
@@ -970,7 +936,6 @@ pub mod test_pickle_nested_message {
     }
     /// Nested message and enum types in `NestedMessage`.
     pub mod nested_message {
-        #[allow(clippy::derive_partial_eq_without_eq)]
         #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
         pub struct NestedNestedMessage<'a> {
             #[femtopb(int32, optional, tag = 1)]
@@ -980,14 +945,12 @@ pub mod test_pickle_nested_message {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestMultipleExtensionRanges<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that really large tag numbers don't break anything.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestReallyLargeTagNumber<'a> {
     /// The largest possible tag number is 2^28 - 1, since the wire format uses
@@ -999,7 +962,6 @@ pub struct TestReallyLargeTagNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRecursiveMessage<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
@@ -1012,7 +974,6 @@ pub struct TestRecursiveMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that mutual recursion works.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMutualRecursionA<'a> {
     ///   optional group SubGroup = 2 {
@@ -1031,7 +992,6 @@ pub struct TestMutualRecursionA<'a> {
 }
 /// Nested message and enum types in `TestMutualRecursionA`.
 pub mod test_mutual_recursion_a {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct SubMessage<'a> {
         #[femtopb(message, optional, tag = 1)]
@@ -1040,7 +1000,6 @@ pub mod test_mutual_recursion_a {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMutualRecursionB<'a> {
     #[femtopb(message, optional, deferred, tag = 1)]
@@ -1052,7 +1011,6 @@ pub struct TestMutualRecursionB<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestIsInitialized<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -1065,7 +1023,6 @@ pub mod test_is_initialized {
     ///     optional group SubGroup = 1 {
     ///       required int32 i = 2;
     ///     }
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct SubMessage<'a> {
         #[femtopb(unknown_fields)]
@@ -1078,7 +1035,6 @@ pub mod test_is_initialized {
 /// in protobuf_unittest_proto.
 ///
 /// NO_PROTO1
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestDupFieldNumber<'a> {
     /// NO_PROTO1
@@ -1088,7 +1044,6 @@ pub struct TestDupFieldNumber<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Additional messages for testing lazy fields.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEagerMessage<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -1096,7 +1051,6 @@ pub struct TestEagerMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestLazyMessage<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -1104,7 +1058,6 @@ pub struct TestLazyMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestLazyMessageRepeated<'a> {
     #[femtopb(message, repeated, tag = 1)]
@@ -1116,7 +1069,6 @@ pub struct TestLazyMessageRepeated<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestEagerMaybeLazy<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -1130,7 +1082,6 @@ pub struct TestEagerMaybeLazy<'a> {
 }
 /// Nested message and enum types in `TestEagerMaybeLazy`.
 pub mod test_eager_maybe_lazy {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(message, optional, tag = 1)]
@@ -1140,7 +1091,6 @@ pub mod test_eager_maybe_lazy {
     }
 }
 /// Needed for a Python test.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedMessageHasBits<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -1152,7 +1102,6 @@ pub struct TestNestedMessageHasBits<'a> {
 }
 /// Nested message and enum types in `TestNestedMessageHasBits`.
 pub mod test_nested_message_has_bits {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(int32, repeated, tag = 1)]
@@ -1173,7 +1122,6 @@ pub mod test_nested_message_has_bits {
 }
 /// Test message with CamelCase field names.  This violates Protocol Buffer
 /// standard style.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCamelCaseFieldNames<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -1231,7 +1179,6 @@ pub struct TestCamelCaseFieldNames<'a> {
 }
 /// We list fields out of order, to ensure that we're using field number and not
 /// field index to determine serialization order.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestFieldOrderings<'a> {
     #[femtopb(string, optional, tag = 11)]
@@ -1249,7 +1196,6 @@ pub struct TestFieldOrderings<'a> {
 }
 /// Nested message and enum types in `TestFieldOrderings`.
 pub mod test_field_orderings {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(int64, optional, tag = 2)]
@@ -1263,7 +1209,6 @@ pub mod test_field_orderings {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionOrderings1<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -1271,7 +1216,6 @@ pub struct TestExtensionOrderings1<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionOrderings2<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -1281,7 +1225,6 @@ pub struct TestExtensionOrderings2<'a> {
 }
 /// Nested message and enum types in `TestExtensionOrderings2`.
 pub mod test_extension_orderings2 {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct TestExtensionOrderings3<'a> {
         #[femtopb(string, optional, tag = 1)]
@@ -1290,7 +1233,6 @@ pub mod test_extension_orderings2 {
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestExtremeDefaultValues<'a> {
     #[femtopb(
@@ -1367,7 +1309,6 @@ pub struct TestExtremeDefaultValues<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct SparseEnumMessage<'a> {
     #[femtopb(enumeration, optional, tag = 1)]
@@ -1378,7 +1319,6 @@ pub struct SparseEnumMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test String and Bytes: string is for valid UTF-8 strings
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct OneString<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -1386,7 +1326,6 @@ pub struct OneString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreString<'a> {
     #[femtopb(string, repeated, tag = 1)]
@@ -1398,7 +1337,6 @@ pub struct MoreString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct OneBytes<'a> {
     #[femtopb(bytes, optional, tag = 1)]
@@ -1406,7 +1344,6 @@ pub struct OneBytes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct MoreBytes<'a> {
     #[femtopb(bytes, repeated, tag = 1)]
@@ -1418,7 +1355,6 @@ pub struct MoreBytes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct ManyOptionalString<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -1489,7 +1425,6 @@ pub struct ManyOptionalString<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test int32, uint32, int64, uint64, and bool are all compatible
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct Int32Message<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -1497,7 +1432,6 @@ pub struct Int32Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct Uint32Message<'a> {
     #[femtopb(uint32, optional, tag = 1)]
@@ -1505,7 +1439,6 @@ pub struct Uint32Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct Int64Message<'a> {
     #[femtopb(int64, optional, tag = 1)]
@@ -1513,7 +1446,6 @@ pub struct Int64Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct Uint64Message<'a> {
     #[femtopb(uint64, optional, tag = 1)]
@@ -1521,7 +1453,6 @@ pub struct Uint64Message<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct BoolMessage<'a> {
     #[femtopb(bool, optional, tag = 1)]
@@ -1530,7 +1461,6 @@ pub struct BoolMessage<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test oneofs.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneof<'a> {
     #[femtopb(oneof, tags = [1, 2, 3])]
@@ -1540,7 +1470,6 @@ pub struct TestOneof<'a> {
 }
 /// Nested message and enum types in `TestOneof`.
 pub mod test_oneof {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum Foo<'a> {
@@ -1558,7 +1487,6 @@ pub mod test_oneof {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneofBackwardsCompatible<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -1574,7 +1502,6 @@ pub struct TestOneofBackwardsCompatible<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestOneof2<'a> {
     #[femtopb(int32, optional, tag = 18)]
@@ -1590,7 +1517,6 @@ pub struct TestOneof2<'a> {
 }
 /// Nested message and enum types in `TestOneof2`.
 pub mod test_oneof2 {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(int64, optional, tag = 1)]
@@ -1634,9 +1560,9 @@ pub mod test_oneof2 {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1649,7 +1575,6 @@ pub mod test_oneof2 {
             }
         }
     }
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum Foo<'a> {
@@ -1678,7 +1603,6 @@ pub mod test_oneof2 {
         #[femtopb(phantom)]
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum Bar<'a> {
@@ -1706,7 +1630,6 @@ pub mod test_oneof2 {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRequiredOneof<'a> {
     #[femtopb(oneof, tags = [1, 2, 3, 4])]
@@ -1716,7 +1639,6 @@ pub struct TestRequiredOneof<'a> {
 }
 /// Nested message and enum types in `TestRequiredOneof`.
 pub mod test_required_oneof {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct NestedMessage<'a> {
         #[femtopb(double, required, tag = 1)]
@@ -1724,7 +1646,6 @@ pub mod test_required_oneof {
         #[femtopb(unknown_fields)]
         pub unknown_fields: femtopb::UnknownFields<'a>,
     }
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum Foo<'a> {
@@ -1740,7 +1661,6 @@ pub mod test_required_oneof {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedTypes<'a> {
     #[femtopb(int32, packed, tag = 90)]
@@ -1828,7 +1748,6 @@ pub struct TestPackedTypes<'a> {
 }
 /// A message with the same fields as TestPackedTypes, but without packing. Used
 /// to test packed <-> unpacked wire compatibility.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestUnpackedTypes<'a> {
     #[femtopb(int32, repeated, tag = 90)]
@@ -1918,13 +1837,11 @@ pub struct TestUnpackedTypes<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestPackedExtensions<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestUnpackedExtensions<'a> {
     #[femtopb(unknown_fields)]
@@ -1933,7 +1850,6 @@ pub struct TestUnpackedExtensions<'a> {
 /// Used by ExtensionSetTest/DynamicExtensions.  The test actually builds
 /// a set of extensions to TestAllExtensions dynamically, based on the fields
 /// of this message type.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestDynamicExtensions<'a> {
     #[femtopb(fixed32, optional, tag = 2000)]
@@ -1969,7 +1885,6 @@ pub struct TestDynamicExtensions<'a> {
 }
 /// Nested message and enum types in `TestDynamicExtensions`.
 pub mod test_dynamic_extensions {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
     pub struct DynamicMessageType<'a> {
         #[femtopb(int32, optional, tag = 2100)]
@@ -2003,9 +1918,9 @@ pub mod test_dynamic_extensions {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                DynamicEnumType::DynamicFoo => "DYNAMIC_FOO",
-                DynamicEnumType::DynamicBar => "DYNAMIC_BAR",
-                DynamicEnumType::DynamicBaz => "DYNAMIC_BAZ",
+                Self::DynamicFoo => "DYNAMIC_FOO",
+                Self::DynamicBar => "DYNAMIC_BAR",
+                Self::DynamicBaz => "DYNAMIC_BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2019,7 +1934,6 @@ pub mod test_dynamic_extensions {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRepeatedString<'a> {
     #[femtopb(string, repeated, tag = 1)]
@@ -2049,7 +1963,6 @@ pub struct TestRepeatedString<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestRepeatedScalarDifferentTagSizes<'a> {
     /// Parsing repeated fixed size values used to fail. This message needs to be
@@ -2099,7 +2012,6 @@ pub struct TestRepeatedScalarDifferentTagSizes<'a> {
 }
 /// Test that if an optional or required message/group field appears multiple
 /// times in the input, they need to be merged.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestParsingMerge<'a> {
     #[femtopb(message, required, tag = 1)]
@@ -2122,7 +2034,6 @@ pub mod test_parsing_merge {
     /// RepeatedFieldsGenerator to bytes, and parse the bytes to TestParsingMerge.
     /// Repeated fields in RepeatedFieldsGenerator are expected to be merged into
     /// the corresponding required/optional fields in TestParsingMerge.
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct RepeatedFieldsGenerator<'a> {
         #[femtopb(message, repeated, tag = 1)]
@@ -2167,7 +2078,6 @@ pub mod test_parsing_merge {
 }
 /// Test that the correct exception is thrown by parseFrom in a corner case
 /// involving merging, extensions, and required fields.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestMergeException<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -2175,7 +2085,6 @@ pub struct TestMergeException<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCommentInjectionMessage<'a> {
     /// */ <- This should not close the generated doc comment
@@ -2186,7 +2095,6 @@ pub struct TestCommentInjectionMessage<'a> {
 }
 /// Used to check that the c++ code generator re-orders messages to reduce
 /// padding.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMessageSize<'a> {
     #[femtopb(bool, optional, tag = 1)]
@@ -2205,43 +2113,36 @@ pub struct TestMessageSize<'a> {
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
 /// Test that RPC services work.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct FooRequest<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct FooResponse<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct FooClientMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct FooServerMessage<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct BarRequest<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct BarResponse<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestJsonName<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -2261,7 +2162,6 @@ pub struct TestJsonName<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestHugeFieldNumbers<'a> {
     #[femtopb(int32, optional, tag = 536870000)]
@@ -2297,7 +2197,6 @@ pub struct TestHugeFieldNumbers<'a> {
 }
 /// Nested message and enum types in `TestHugeFieldNumbers`.
 pub mod test_huge_field_numbers {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Oneof)]
     #[non_exhaustive]
     pub enum OneofField<'a> {
@@ -2313,7 +2212,6 @@ pub mod test_huge_field_numbers {
         _Phantom(::core::marker::PhantomData<&'a ()>),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionInsideTable<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -2358,13 +2256,11 @@ pub struct TestExtensionInsideTable<'a> {
 ///       optional string but_why_tho = 5;
 ///     }
 ///   }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestNestedGroupExtensionOuter<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedGroupExtensionInnerExtension<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -2372,7 +2268,6 @@ pub struct TestNestedGroupExtensionInnerExtension<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestExtensionRangeSerialize<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -2386,7 +2281,6 @@ pub struct TestExtensionRangeSerialize<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32Simple<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -2400,7 +2294,6 @@ pub struct TestVerifyInt32Simple<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -2422,7 +2315,6 @@ pub struct TestVerifyInt32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyMostlyInt32<'a> {
     #[femtopb(int64, optional, tag = 30)]
@@ -2450,7 +2342,6 @@ pub struct TestVerifyMostlyInt32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyMostlyInt32BigFieldNumber<'a> {
     #[femtopb(int64, optional, tag = 30)]
@@ -2480,7 +2371,6 @@ pub struct TestVerifyMostlyInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32Simple<'a> {
     #[femtopb(uint32, optional, tag = 1)]
@@ -2494,7 +2384,6 @@ pub struct TestVerifyUint32Simple<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32<'a> {
     #[femtopb(uint32, optional, tag = 1)]
@@ -2516,7 +2405,6 @@ pub struct TestVerifyUint32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyOneUint32<'a> {
     #[femtopb(uint32, optional, tag = 1)]
@@ -2538,7 +2426,6 @@ pub struct TestVerifyOneUint32<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyOneInt32BigFieldNumber<'a> {
     #[femtopb(int32, optional, tag = 65)]
@@ -2562,7 +2449,6 @@ pub struct TestVerifyOneInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyInt32BigFieldNumber<'a> {
     #[femtopb(int32, optional, tag = 1000)]
@@ -2588,7 +2474,6 @@ pub struct TestVerifyInt32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyUint32BigFieldNumber<'a> {
     #[femtopb(uint32, optional, tag = 1000)]
@@ -2614,7 +2499,6 @@ pub struct TestVerifyUint32BigFieldNumber<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestVerifyBigFieldNumberUint32<'a> {
     #[femtopb(message, optional, tag = 1)]
@@ -2626,7 +2510,6 @@ pub struct TestVerifyBigFieldNumberUint32<'a> {
 }
 /// Nested message and enum types in `TestVerifyBigFieldNumberUint32`.
 pub mod test_verify_big_field_number_uint32 {
-    #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::femtopb::Message)]
     pub struct Nested<'a> {
         #[femtopb(uint32, optional, tag = 5000)]
@@ -2661,7 +2544,6 @@ pub mod test_verify_big_field_number_uint32 {
 }
 /// This message contains different kind of enums to exercise the different
 /// parsers in table-driven.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct EnumParseTester<'a> {
     #[femtopb(enumeration, optional, tag = 1)]
@@ -2890,9 +2772,9 @@ pub mod enum_parse_tester {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                SeqSmall0::Default => "SEQ_SMALL_0_DEFAULT",
-                SeqSmall0::SeqSmall01 => "SEQ_SMALL_0_1",
-                SeqSmall0::SeqSmall02 => "SEQ_SMALL_0_2",
+                Self::Default => "SEQ_SMALL_0_DEFAULT",
+                Self::SeqSmall01 => "SEQ_SMALL_0_1",
+                Self::SeqSmall02 => "SEQ_SMALL_0_2",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2931,9 +2813,9 @@ pub mod enum_parse_tester {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                SeqSmall1::Default => "SEQ_SMALL_1_DEFAULT",
-                SeqSmall1::SeqSmall12 => "SEQ_SMALL_1_2",
-                SeqSmall1::SeqSmall13 => "SEQ_SMALL_1_3",
+                Self::Default => "SEQ_SMALL_1_DEFAULT",
+                Self::SeqSmall12 => "SEQ_SMALL_1_2",
+                Self::SeqSmall13 => "SEQ_SMALL_1_3",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3004,41 +2886,41 @@ pub mod enum_parse_tester {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                SeqLarge::Default => "SEQ_LARGE_DEFAULT",
-                SeqLarge::SeqLarge0 => "SEQ_LARGE_0",
-                SeqLarge::SeqLarge1 => "SEQ_LARGE_1",
-                SeqLarge::SeqLarge2 => "SEQ_LARGE_2",
-                SeqLarge::SeqLarge3 => "SEQ_LARGE_3",
-                SeqLarge::SeqLarge4 => "SEQ_LARGE_4",
-                SeqLarge::SeqLarge5 => "SEQ_LARGE_5",
-                SeqLarge::SeqLarge6 => "SEQ_LARGE_6",
-                SeqLarge::SeqLarge7 => "SEQ_LARGE_7",
-                SeqLarge::SeqLarge8 => "SEQ_LARGE_8",
-                SeqLarge::SeqLarge9 => "SEQ_LARGE_9",
-                SeqLarge::SeqLarge10 => "SEQ_LARGE_10",
-                SeqLarge::SeqLarge11 => "SEQ_LARGE_11",
-                SeqLarge::SeqLarge12 => "SEQ_LARGE_12",
-                SeqLarge::SeqLarge13 => "SEQ_LARGE_13",
-                SeqLarge::SeqLarge14 => "SEQ_LARGE_14",
-                SeqLarge::SeqLarge15 => "SEQ_LARGE_15",
-                SeqLarge::SeqLarge16 => "SEQ_LARGE_16",
-                SeqLarge::SeqLarge17 => "SEQ_LARGE_17",
-                SeqLarge::SeqLarge18 => "SEQ_LARGE_18",
-                SeqLarge::SeqLarge19 => "SEQ_LARGE_19",
-                SeqLarge::SeqLarge20 => "SEQ_LARGE_20",
-                SeqLarge::SeqLarge21 => "SEQ_LARGE_21",
-                SeqLarge::SeqLarge22 => "SEQ_LARGE_22",
-                SeqLarge::SeqLarge23 => "SEQ_LARGE_23",
-                SeqLarge::SeqLarge24 => "SEQ_LARGE_24",
-                SeqLarge::SeqLarge25 => "SEQ_LARGE_25",
-                SeqLarge::SeqLarge26 => "SEQ_LARGE_26",
-                SeqLarge::SeqLarge27 => "SEQ_LARGE_27",
-                SeqLarge::SeqLarge28 => "SEQ_LARGE_28",
-                SeqLarge::SeqLarge29 => "SEQ_LARGE_29",
-                SeqLarge::SeqLarge30 => "SEQ_LARGE_30",
-                SeqLarge::SeqLarge31 => "SEQ_LARGE_31",
-                SeqLarge::SeqLarge32 => "SEQ_LARGE_32",
-                SeqLarge::SeqLarge33 => "SEQ_LARGE_33",
+                Self::Default => "SEQ_LARGE_DEFAULT",
+                Self::SeqLarge0 => "SEQ_LARGE_0",
+                Self::SeqLarge1 => "SEQ_LARGE_1",
+                Self::SeqLarge2 => "SEQ_LARGE_2",
+                Self::SeqLarge3 => "SEQ_LARGE_3",
+                Self::SeqLarge4 => "SEQ_LARGE_4",
+                Self::SeqLarge5 => "SEQ_LARGE_5",
+                Self::SeqLarge6 => "SEQ_LARGE_6",
+                Self::SeqLarge7 => "SEQ_LARGE_7",
+                Self::SeqLarge8 => "SEQ_LARGE_8",
+                Self::SeqLarge9 => "SEQ_LARGE_9",
+                Self::SeqLarge10 => "SEQ_LARGE_10",
+                Self::SeqLarge11 => "SEQ_LARGE_11",
+                Self::SeqLarge12 => "SEQ_LARGE_12",
+                Self::SeqLarge13 => "SEQ_LARGE_13",
+                Self::SeqLarge14 => "SEQ_LARGE_14",
+                Self::SeqLarge15 => "SEQ_LARGE_15",
+                Self::SeqLarge16 => "SEQ_LARGE_16",
+                Self::SeqLarge17 => "SEQ_LARGE_17",
+                Self::SeqLarge18 => "SEQ_LARGE_18",
+                Self::SeqLarge19 => "SEQ_LARGE_19",
+                Self::SeqLarge20 => "SEQ_LARGE_20",
+                Self::SeqLarge21 => "SEQ_LARGE_21",
+                Self::SeqLarge22 => "SEQ_LARGE_22",
+                Self::SeqLarge23 => "SEQ_LARGE_23",
+                Self::SeqLarge24 => "SEQ_LARGE_24",
+                Self::SeqLarge25 => "SEQ_LARGE_25",
+                Self::SeqLarge26 => "SEQ_LARGE_26",
+                Self::SeqLarge27 => "SEQ_LARGE_27",
+                Self::SeqLarge28 => "SEQ_LARGE_28",
+                Self::SeqLarge29 => "SEQ_LARGE_29",
+                Self::SeqLarge30 => "SEQ_LARGE_30",
+                Self::SeqLarge31 => "SEQ_LARGE_31",
+                Self::SeqLarge32 => "SEQ_LARGE_32",
+                Self::SeqLarge33 => "SEQ_LARGE_33",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3112,12 +2994,12 @@ pub mod enum_parse_tester {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Arbitrary::Default => "ARBITRARY_DEFAULT",
-                Arbitrary::Arbitrary1 => "ARBITRARY_1",
-                Arbitrary::Arbitrary2 => "ARBITRARY_2",
-                Arbitrary::Arbitrary3 => "ARBITRARY_3",
-                Arbitrary::Min => "ARBITRARY_MIN",
-                Arbitrary::Max => "ARBITRARY_MAX",
+                Self::Default => "ARBITRARY_DEFAULT",
+                Self::Arbitrary1 => "ARBITRARY_1",
+                Self::Arbitrary2 => "ARBITRARY_2",
+                Self::Arbitrary3 => "ARBITRARY_3",
+                Self::Min => "ARBITRARY_MIN",
+                Self::Max => "ARBITRARY_MAX",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3136,7 +3018,6 @@ pub mod enum_parse_tester {
 }
 /// This message contains different kind of bool fields to exercise the different
 /// parsers in table-drived.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct BoolParseTester<'a> {
     #[femtopb(bool, optional, tag = 1)]
@@ -3187,7 +3068,6 @@ pub struct BoolParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int32ParseTester<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -3238,7 +3118,6 @@ pub struct Int32ParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct Int64ParseTester<'a> {
     #[femtopb(int64, optional, tag = 1)]
@@ -3289,7 +3168,6 @@ pub struct Int64ParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct InlinedStringIdxRegressionProto<'a> {
     /// We mix data to make sure aux ids and inlined string idx do not match.
@@ -3310,7 +3188,6 @@ pub struct InlinedStringIdxRegressionProto<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct StringParseTester<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -3340,7 +3217,6 @@ pub struct StringParseTester<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct BadFieldNames<'a> {
     #[femtopb(int32, optional, tag = 1)]
@@ -3350,7 +3226,6 @@ pub struct BadFieldNames<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestNestedMessageRedaction<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -3360,7 +3235,6 @@ pub struct TestNestedMessageRedaction<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct RedactedFields<'a> {
     #[femtopb(string, optional, tag = 1)]
@@ -3404,7 +3278,6 @@ pub struct RedactedFields<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestCord<'a> {
     #[femtopb(bytes, optional, tag = 1)]
@@ -3414,7 +3287,6 @@ pub struct TestCord<'a> {
     #[femtopb(unknown_fields)]
     pub unknown_fields: femtopb::UnknownFields<'a>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestPackedEnumSmallRange<'a> {
     #[femtopb(enumeration, packed, tag = 1)]
@@ -3455,10 +3327,10 @@ pub mod test_packed_enum_small_range {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                NestedEnum::Unspecified => "UNSPECIFIED",
-                NestedEnum::Foo => "FOO",
-                NestedEnum::Bar => "BAR",
-                NestedEnum::Baz => "BAZ",
+                Self::Unspecified => "UNSPECIFIED",
+                Self::Foo => "FOO",
+                Self::Bar => "BAR",
+                Self::Baz => "BAZ",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3473,7 +3345,6 @@ pub mod test_packed_enum_small_range {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::femtopb::Message)]
 pub struct EnumsForBenchmark<'a> {
     #[femtopb(unknown_fields)]
@@ -3520,22 +3391,22 @@ pub mod enums_for_benchmark {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Flat::A0 => "A0",
-                Flat::A1 => "A1",
-                Flat::A2 => "A2",
-                Flat::A3 => "A3",
-                Flat::A4 => "A4",
-                Flat::A5 => "A5",
-                Flat::A6 => "A6",
-                Flat::A7 => "A7",
-                Flat::A8 => "A8",
-                Flat::A9 => "A9",
-                Flat::A10 => "A10",
-                Flat::A11 => "A11",
-                Flat::A12 => "A12",
-                Flat::A13 => "A13",
-                Flat::A14 => "A14",
-                Flat::A15 => "A15",
+                Self::A0 => "A0",
+                Self::A1 => "A1",
+                Self::A2 => "A2",
+                Self::A3 => "A3",
+                Self::A4 => "A4",
+                Self::A5 => "A5",
+                Self::A6 => "A6",
+                Self::A7 => "A7",
+                Self::A8 => "A8",
+                Self::A9 => "A9",
+                Self::A10 => "A10",
+                Self::A11 => "A11",
+                Self::A12 => "A12",
+                Self::A13 => "A13",
+                Self::A14 => "A14",
+                Self::A15 => "A15",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3601,22 +3472,22 @@ pub mod enums_for_benchmark {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                AlmostFlat::B0 => "B0",
-                AlmostFlat::B1 => "B1",
-                AlmostFlat::B2 => "B2",
-                AlmostFlat::B3 => "B3",
-                AlmostFlat::B5 => "B5",
-                AlmostFlat::B6 => "B6",
-                AlmostFlat::B7 => "B7",
-                AlmostFlat::B8 => "B8",
-                AlmostFlat::B9 => "B9",
-                AlmostFlat::B11 => "B11",
-                AlmostFlat::B12 => "B12",
-                AlmostFlat::B13 => "B13",
-                AlmostFlat::B14 => "B14",
-                AlmostFlat::B15 => "B15",
-                AlmostFlat::B17 => "B17",
-                AlmostFlat::B19 => "B19",
+                Self::B0 => "B0",
+                Self::B1 => "B1",
+                Self::B2 => "B2",
+                Self::B3 => "B3",
+                Self::B5 => "B5",
+                Self::B6 => "B6",
+                Self::B7 => "B7",
+                Self::B8 => "B8",
+                Self::B9 => "B9",
+                Self::B11 => "B11",
+                Self::B12 => "B12",
+                Self::B13 => "B13",
+                Self::B14 => "B14",
+                Self::B15 => "B15",
+                Self::B17 => "B17",
+                Self::B19 => "B19",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3681,22 +3552,22 @@ pub mod enums_for_benchmark {
         /// (if the ProtoBuf definition does not change) and safe for programmatic use.
         pub fn as_str_name(&self) -> &'static str {
             match self {
-                Sparse::C536 => "C536",
-                Sparse::C8387 => "C8387",
-                Sparse::C9673 => "C9673",
-                Sparse::C10285 => "C10285",
-                Sparse::C13318 => "C13318",
-                Sparse::C15963 => "C15963",
-                Sparse::C16439 => "C16439",
-                Sparse::C18197 => "C18197",
-                Sparse::C19430 => "C19430",
-                Sparse::C20361 => "C20361",
-                Sparse::C20706 => "C20706",
-                Sparse::C21050 => "C21050",
-                Sparse::C21906 => "C21906",
-                Sparse::C27265 => "C27265",
-                Sparse::C30109 => "C30109",
-                Sparse::C31670 => "C31670",
+                Self::C536 => "C536",
+                Self::C8387 => "C8387",
+                Self::C9673 => "C9673",
+                Self::C10285 => "C10285",
+                Self::C13318 => "C13318",
+                Self::C15963 => "C15963",
+                Self::C16439 => "C16439",
+                Self::C18197 => "C18197",
+                Self::C19430 => "C19430",
+                Self::C20361 => "C20361",
+                Self::C20706 => "C20706",
+                Self::C21050 => "C21050",
+                Self::C21906 => "C21906",
+                Self::C27265 => "C27265",
+                Self::C30109 => "C30109",
+                Self::C31670 => "C31670",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3723,7 +3594,6 @@ pub mod enums_for_benchmark {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct TestMessageWithManyRepeatedPtrFields<'a> {
     #[femtopb(string, repeated, tag = 1)]
@@ -3949,10 +3819,10 @@ impl ForeignEnum {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            ForeignEnum::ForeignFoo => "FOREIGN_FOO",
-            ForeignEnum::ForeignBar => "FOREIGN_BAR",
-            ForeignEnum::ForeignBaz => "FOREIGN_BAZ",
-            ForeignEnum::ForeignBax => "FOREIGN_BAX",
+            Self::ForeignFoo => "FOREIGN_FOO",
+            Self::ForeignBar => "FOREIGN_BAR",
+            Self::ForeignBaz => "FOREIGN_BAZ",
+            Self::ForeignBax => "FOREIGN_BAX",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3990,7 +3860,7 @@ impl TestReservedEnumFields {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            TestReservedEnumFields::Unknown => "UNKNOWN",
+            Self::Unknown => "UNKNOWN",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -4028,9 +3898,9 @@ impl TestEnumWithDupValue {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            TestEnumWithDupValue::Foo1 => "FOO1",
-            TestEnumWithDupValue::Bar1 => "BAR1",
-            TestEnumWithDupValue::Baz => "BAZ",
+            Self::Foo1 => "FOO1",
+            Self::Bar1 => "BAR1",
+            Self::Baz => "BAZ",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -4074,13 +3944,13 @@ impl TestSparseEnum {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            TestSparseEnum::SparseA => "SPARSE_A",
-            TestSparseEnum::SparseB => "SPARSE_B",
-            TestSparseEnum::SparseC => "SPARSE_C",
-            TestSparseEnum::SparseD => "SPARSE_D",
-            TestSparseEnum::SparseE => "SPARSE_E",
-            TestSparseEnum::SparseF => "SPARSE_F",
-            TestSparseEnum::SparseG => "SPARSE_G",
+            Self::SparseA => "SPARSE_A",
+            Self::SparseB => "SPARSE_B",
+            Self::SparseC => "SPARSE_C",
+            Self::SparseD => "SPARSE_D",
+            Self::SparseE => "SPARSE_E",
+            Self::SparseF => "SPARSE_F",
+            Self::SparseG => "SPARSE_G",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -4221,107 +4091,107 @@ impl VeryLargeEnum {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            VeryLargeEnum::EnumLabelDefault => "ENUM_LABEL_DEFAULT",
-            VeryLargeEnum::EnumLabel1 => "ENUM_LABEL_1",
-            VeryLargeEnum::EnumLabel2 => "ENUM_LABEL_2",
-            VeryLargeEnum::EnumLabel3 => "ENUM_LABEL_3",
-            VeryLargeEnum::EnumLabel4 => "ENUM_LABEL_4",
-            VeryLargeEnum::EnumLabel5 => "ENUM_LABEL_5",
-            VeryLargeEnum::EnumLabel6 => "ENUM_LABEL_6",
-            VeryLargeEnum::EnumLabel7 => "ENUM_LABEL_7",
-            VeryLargeEnum::EnumLabel8 => "ENUM_LABEL_8",
-            VeryLargeEnum::EnumLabel9 => "ENUM_LABEL_9",
-            VeryLargeEnum::EnumLabel10 => "ENUM_LABEL_10",
-            VeryLargeEnum::EnumLabel11 => "ENUM_LABEL_11",
-            VeryLargeEnum::EnumLabel12 => "ENUM_LABEL_12",
-            VeryLargeEnum::EnumLabel13 => "ENUM_LABEL_13",
-            VeryLargeEnum::EnumLabel14 => "ENUM_LABEL_14",
-            VeryLargeEnum::EnumLabel15 => "ENUM_LABEL_15",
-            VeryLargeEnum::EnumLabel16 => "ENUM_LABEL_16",
-            VeryLargeEnum::EnumLabel17 => "ENUM_LABEL_17",
-            VeryLargeEnum::EnumLabel18 => "ENUM_LABEL_18",
-            VeryLargeEnum::EnumLabel19 => "ENUM_LABEL_19",
-            VeryLargeEnum::EnumLabel20 => "ENUM_LABEL_20",
-            VeryLargeEnum::EnumLabel21 => "ENUM_LABEL_21",
-            VeryLargeEnum::EnumLabel22 => "ENUM_LABEL_22",
-            VeryLargeEnum::EnumLabel23 => "ENUM_LABEL_23",
-            VeryLargeEnum::EnumLabel24 => "ENUM_LABEL_24",
-            VeryLargeEnum::EnumLabel25 => "ENUM_LABEL_25",
-            VeryLargeEnum::EnumLabel26 => "ENUM_LABEL_26",
-            VeryLargeEnum::EnumLabel27 => "ENUM_LABEL_27",
-            VeryLargeEnum::EnumLabel28 => "ENUM_LABEL_28",
-            VeryLargeEnum::EnumLabel29 => "ENUM_LABEL_29",
-            VeryLargeEnum::EnumLabel30 => "ENUM_LABEL_30",
-            VeryLargeEnum::EnumLabel31 => "ENUM_LABEL_31",
-            VeryLargeEnum::EnumLabel32 => "ENUM_LABEL_32",
-            VeryLargeEnum::EnumLabel33 => "ENUM_LABEL_33",
-            VeryLargeEnum::EnumLabel34 => "ENUM_LABEL_34",
-            VeryLargeEnum::EnumLabel35 => "ENUM_LABEL_35",
-            VeryLargeEnum::EnumLabel36 => "ENUM_LABEL_36",
-            VeryLargeEnum::EnumLabel37 => "ENUM_LABEL_37",
-            VeryLargeEnum::EnumLabel38 => "ENUM_LABEL_38",
-            VeryLargeEnum::EnumLabel39 => "ENUM_LABEL_39",
-            VeryLargeEnum::EnumLabel40 => "ENUM_LABEL_40",
-            VeryLargeEnum::EnumLabel41 => "ENUM_LABEL_41",
-            VeryLargeEnum::EnumLabel42 => "ENUM_LABEL_42",
-            VeryLargeEnum::EnumLabel43 => "ENUM_LABEL_43",
-            VeryLargeEnum::EnumLabel44 => "ENUM_LABEL_44",
-            VeryLargeEnum::EnumLabel45 => "ENUM_LABEL_45",
-            VeryLargeEnum::EnumLabel46 => "ENUM_LABEL_46",
-            VeryLargeEnum::EnumLabel47 => "ENUM_LABEL_47",
-            VeryLargeEnum::EnumLabel48 => "ENUM_LABEL_48",
-            VeryLargeEnum::EnumLabel49 => "ENUM_LABEL_49",
-            VeryLargeEnum::EnumLabel50 => "ENUM_LABEL_50",
-            VeryLargeEnum::EnumLabel51 => "ENUM_LABEL_51",
-            VeryLargeEnum::EnumLabel52 => "ENUM_LABEL_52",
-            VeryLargeEnum::EnumLabel53 => "ENUM_LABEL_53",
-            VeryLargeEnum::EnumLabel54 => "ENUM_LABEL_54",
-            VeryLargeEnum::EnumLabel55 => "ENUM_LABEL_55",
-            VeryLargeEnum::EnumLabel56 => "ENUM_LABEL_56",
-            VeryLargeEnum::EnumLabel57 => "ENUM_LABEL_57",
-            VeryLargeEnum::EnumLabel58 => "ENUM_LABEL_58",
-            VeryLargeEnum::EnumLabel59 => "ENUM_LABEL_59",
-            VeryLargeEnum::EnumLabel60 => "ENUM_LABEL_60",
-            VeryLargeEnum::EnumLabel61 => "ENUM_LABEL_61",
-            VeryLargeEnum::EnumLabel62 => "ENUM_LABEL_62",
-            VeryLargeEnum::EnumLabel63 => "ENUM_LABEL_63",
-            VeryLargeEnum::EnumLabel64 => "ENUM_LABEL_64",
-            VeryLargeEnum::EnumLabel65 => "ENUM_LABEL_65",
-            VeryLargeEnum::EnumLabel66 => "ENUM_LABEL_66",
-            VeryLargeEnum::EnumLabel67 => "ENUM_LABEL_67",
-            VeryLargeEnum::EnumLabel68 => "ENUM_LABEL_68",
-            VeryLargeEnum::EnumLabel69 => "ENUM_LABEL_69",
-            VeryLargeEnum::EnumLabel70 => "ENUM_LABEL_70",
-            VeryLargeEnum::EnumLabel71 => "ENUM_LABEL_71",
-            VeryLargeEnum::EnumLabel72 => "ENUM_LABEL_72",
-            VeryLargeEnum::EnumLabel73 => "ENUM_LABEL_73",
-            VeryLargeEnum::EnumLabel74 => "ENUM_LABEL_74",
-            VeryLargeEnum::EnumLabel75 => "ENUM_LABEL_75",
-            VeryLargeEnum::EnumLabel76 => "ENUM_LABEL_76",
-            VeryLargeEnum::EnumLabel77 => "ENUM_LABEL_77",
-            VeryLargeEnum::EnumLabel78 => "ENUM_LABEL_78",
-            VeryLargeEnum::EnumLabel79 => "ENUM_LABEL_79",
-            VeryLargeEnum::EnumLabel80 => "ENUM_LABEL_80",
-            VeryLargeEnum::EnumLabel81 => "ENUM_LABEL_81",
-            VeryLargeEnum::EnumLabel82 => "ENUM_LABEL_82",
-            VeryLargeEnum::EnumLabel83 => "ENUM_LABEL_83",
-            VeryLargeEnum::EnumLabel84 => "ENUM_LABEL_84",
-            VeryLargeEnum::EnumLabel85 => "ENUM_LABEL_85",
-            VeryLargeEnum::EnumLabel86 => "ENUM_LABEL_86",
-            VeryLargeEnum::EnumLabel87 => "ENUM_LABEL_87",
-            VeryLargeEnum::EnumLabel88 => "ENUM_LABEL_88",
-            VeryLargeEnum::EnumLabel89 => "ENUM_LABEL_89",
-            VeryLargeEnum::EnumLabel90 => "ENUM_LABEL_90",
-            VeryLargeEnum::EnumLabel91 => "ENUM_LABEL_91",
-            VeryLargeEnum::EnumLabel92 => "ENUM_LABEL_92",
-            VeryLargeEnum::EnumLabel93 => "ENUM_LABEL_93",
-            VeryLargeEnum::EnumLabel94 => "ENUM_LABEL_94",
-            VeryLargeEnum::EnumLabel95 => "ENUM_LABEL_95",
-            VeryLargeEnum::EnumLabel96 => "ENUM_LABEL_96",
-            VeryLargeEnum::EnumLabel97 => "ENUM_LABEL_97",
-            VeryLargeEnum::EnumLabel98 => "ENUM_LABEL_98",
-            VeryLargeEnum::EnumLabel99 => "ENUM_LABEL_99",
-            VeryLargeEnum::EnumLabel100 => "ENUM_LABEL_100",
+            Self::EnumLabelDefault => "ENUM_LABEL_DEFAULT",
+            Self::EnumLabel1 => "ENUM_LABEL_1",
+            Self::EnumLabel2 => "ENUM_LABEL_2",
+            Self::EnumLabel3 => "ENUM_LABEL_3",
+            Self::EnumLabel4 => "ENUM_LABEL_4",
+            Self::EnumLabel5 => "ENUM_LABEL_5",
+            Self::EnumLabel6 => "ENUM_LABEL_6",
+            Self::EnumLabel7 => "ENUM_LABEL_7",
+            Self::EnumLabel8 => "ENUM_LABEL_8",
+            Self::EnumLabel9 => "ENUM_LABEL_9",
+            Self::EnumLabel10 => "ENUM_LABEL_10",
+            Self::EnumLabel11 => "ENUM_LABEL_11",
+            Self::EnumLabel12 => "ENUM_LABEL_12",
+            Self::EnumLabel13 => "ENUM_LABEL_13",
+            Self::EnumLabel14 => "ENUM_LABEL_14",
+            Self::EnumLabel15 => "ENUM_LABEL_15",
+            Self::EnumLabel16 => "ENUM_LABEL_16",
+            Self::EnumLabel17 => "ENUM_LABEL_17",
+            Self::EnumLabel18 => "ENUM_LABEL_18",
+            Self::EnumLabel19 => "ENUM_LABEL_19",
+            Self::EnumLabel20 => "ENUM_LABEL_20",
+            Self::EnumLabel21 => "ENUM_LABEL_21",
+            Self::EnumLabel22 => "ENUM_LABEL_22",
+            Self::EnumLabel23 => "ENUM_LABEL_23",
+            Self::EnumLabel24 => "ENUM_LABEL_24",
+            Self::EnumLabel25 => "ENUM_LABEL_25",
+            Self::EnumLabel26 => "ENUM_LABEL_26",
+            Self::EnumLabel27 => "ENUM_LABEL_27",
+            Self::EnumLabel28 => "ENUM_LABEL_28",
+            Self::EnumLabel29 => "ENUM_LABEL_29",
+            Self::EnumLabel30 => "ENUM_LABEL_30",
+            Self::EnumLabel31 => "ENUM_LABEL_31",
+            Self::EnumLabel32 => "ENUM_LABEL_32",
+            Self::EnumLabel33 => "ENUM_LABEL_33",
+            Self::EnumLabel34 => "ENUM_LABEL_34",
+            Self::EnumLabel35 => "ENUM_LABEL_35",
+            Self::EnumLabel36 => "ENUM_LABEL_36",
+            Self::EnumLabel37 => "ENUM_LABEL_37",
+            Self::EnumLabel38 => "ENUM_LABEL_38",
+            Self::EnumLabel39 => "ENUM_LABEL_39",
+            Self::EnumLabel40 => "ENUM_LABEL_40",
+            Self::EnumLabel41 => "ENUM_LABEL_41",
+            Self::EnumLabel42 => "ENUM_LABEL_42",
+            Self::EnumLabel43 => "ENUM_LABEL_43",
+            Self::EnumLabel44 => "ENUM_LABEL_44",
+            Self::EnumLabel45 => "ENUM_LABEL_45",
+            Self::EnumLabel46 => "ENUM_LABEL_46",
+            Self::EnumLabel47 => "ENUM_LABEL_47",
+            Self::EnumLabel48 => "ENUM_LABEL_48",
+            Self::EnumLabel49 => "ENUM_LABEL_49",
+            Self::EnumLabel50 => "ENUM_LABEL_50",
+            Self::EnumLabel51 => "ENUM_LABEL_51",
+            Self::EnumLabel52 => "ENUM_LABEL_52",
+            Self::EnumLabel53 => "ENUM_LABEL_53",
+            Self::EnumLabel54 => "ENUM_LABEL_54",
+            Self::EnumLabel55 => "ENUM_LABEL_55",
+            Self::EnumLabel56 => "ENUM_LABEL_56",
+            Self::EnumLabel57 => "ENUM_LABEL_57",
+            Self::EnumLabel58 => "ENUM_LABEL_58",
+            Self::EnumLabel59 => "ENUM_LABEL_59",
+            Self::EnumLabel60 => "ENUM_LABEL_60",
+            Self::EnumLabel61 => "ENUM_LABEL_61",
+            Self::EnumLabel62 => "ENUM_LABEL_62",
+            Self::EnumLabel63 => "ENUM_LABEL_63",
+            Self::EnumLabel64 => "ENUM_LABEL_64",
+            Self::EnumLabel65 => "ENUM_LABEL_65",
+            Self::EnumLabel66 => "ENUM_LABEL_66",
+            Self::EnumLabel67 => "ENUM_LABEL_67",
+            Self::EnumLabel68 => "ENUM_LABEL_68",
+            Self::EnumLabel69 => "ENUM_LABEL_69",
+            Self::EnumLabel70 => "ENUM_LABEL_70",
+            Self::EnumLabel71 => "ENUM_LABEL_71",
+            Self::EnumLabel72 => "ENUM_LABEL_72",
+            Self::EnumLabel73 => "ENUM_LABEL_73",
+            Self::EnumLabel74 => "ENUM_LABEL_74",
+            Self::EnumLabel75 => "ENUM_LABEL_75",
+            Self::EnumLabel76 => "ENUM_LABEL_76",
+            Self::EnumLabel77 => "ENUM_LABEL_77",
+            Self::EnumLabel78 => "ENUM_LABEL_78",
+            Self::EnumLabel79 => "ENUM_LABEL_79",
+            Self::EnumLabel80 => "ENUM_LABEL_80",
+            Self::EnumLabel81 => "ENUM_LABEL_81",
+            Self::EnumLabel82 => "ENUM_LABEL_82",
+            Self::EnumLabel83 => "ENUM_LABEL_83",
+            Self::EnumLabel84 => "ENUM_LABEL_84",
+            Self::EnumLabel85 => "ENUM_LABEL_85",
+            Self::EnumLabel86 => "ENUM_LABEL_86",
+            Self::EnumLabel87 => "ENUM_LABEL_87",
+            Self::EnumLabel88 => "ENUM_LABEL_88",
+            Self::EnumLabel89 => "ENUM_LABEL_89",
+            Self::EnumLabel90 => "ENUM_LABEL_90",
+            Self::EnumLabel91 => "ENUM_LABEL_91",
+            Self::EnumLabel92 => "ENUM_LABEL_92",
+            Self::EnumLabel93 => "ENUM_LABEL_93",
+            Self::EnumLabel94 => "ENUM_LABEL_94",
+            Self::EnumLabel95 => "ENUM_LABEL_95",
+            Self::EnumLabel96 => "ENUM_LABEL_96",
+            Self::EnumLabel97 => "ENUM_LABEL_97",
+            Self::EnumLabel98 => "ENUM_LABEL_98",
+            Self::EnumLabel99 => "ENUM_LABEL_99",
+            Self::EnumLabel100 => "ENUM_LABEL_100",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
