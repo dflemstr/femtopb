@@ -466,6 +466,105 @@ mod tests {
         );
     }
 
+    fn key(tag: u8, wire_type: encoding::WireType) -> u8 {
+        wire_type as u8 | tag << 3
+    }
+
+    #[test]
+    fn packed_accepts_the_unpacked_wire_format_too() {
+        // A field declared `packed` may still arrive unpacked (element wire type per occurrence);
+        // `Packed` handles that fallback.
+        let tag = 1;
+        let v = encoding::WireType::Varint;
+        let msgbuf = &[key(tag, v), 1, key(tag, v), 2, key(tag, v), 3];
+        let packed: Packed<i32, item_encoding::Int32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            packed.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1), Ok(2), Ok(3)]
+        );
+    }
+
+    #[test]
+    fn packed_wrong_wire_type_surfaces_unexpected_wire_type() {
+        // Tag 1 carries a 32-bit wire type, which is neither the packed (length-delimited) form nor
+        // the element's own varint encoding.
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::ThirtyTwoBit), 0, 0, 0, 0];
+        let packed: Packed<i32, item_encoding::Int32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            packed.iter().collect::<Vec<_>>().as_slice(),
+            &[Err(error::DecodeError::UnexpectedWireTypeValue {
+                actual: encoding::WireType::ThirtyTwoBit,
+                expected: encoding::WireType::LengthDelimited,
+            })]
+        );
+    }
+
+    #[test]
+    fn packed_fixed_width_element_type() {
+        // fixed32 elements are four little-endian bytes each; two of them in a packed chunk of 8.
+        let tag = 1;
+        let msgbuf = &[
+            key(tag, encoding::WireType::LengthDelimited),
+            8,
+            0x01,
+            0x00,
+            0x00,
+            0x00,
+            0x02,
+            0x00,
+            0x00,
+            0x00,
+        ];
+        let packed: Packed<u32, item_encoding::Fixed32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            packed.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1), Ok(2)]
+        );
+    }
+
+    #[test]
+    fn packed_float_element_type() {
+        let tag = 1;
+        let mut msgbuf = vec![key(tag, encoding::WireType::LengthDelimited), 8];
+        msgbuf.extend_from_slice(&1.5f32.to_le_bytes());
+        msgbuf.extend_from_slice(&(-2.0f32).to_le_bytes());
+        let packed: Packed<f32, item_encoding::Float> =
+            Packed::from_msg_buf(tag as u32, &msgbuf, &msgbuf);
+        assert_eq!(
+            packed.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1.5), Ok(-2.0)]
+        );
+    }
+
+    #[test]
+    fn packed_partial_eq_holds_across_representations() {
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::LengthDelimited), 3, 1, 2, 3];
+        let from_buf: Packed<i32, item_encoding::Int32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        let from_slice: Packed<i32, item_encoding::Int32> = Packed::from_slice(&[1, 2, 3]);
+        assert_eq!(from_buf, from_slice);
+
+        let different: Packed<i32, item_encoding::Int32> = Packed::from_slice(&[1, 2, 4]);
+        assert_ne!(from_buf, different);
+    }
+
+    #[test]
+    fn packed_error_stops_iteration_permanently() {
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::LengthDelimited), 5, 1, 2];
+        let packed: Packed<i32, item_encoding::Int32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        let mut iter = packed.iter();
+        assert_eq!(iter.next(), Some(Err(error::DecodeError::BufferUnderflow)));
+        assert_eq!(iter.next(), None);
+        assert_eq!(iter.next(), None);
+    }
+
     #[test]
     fn packed_nonempty_msgbuf_ignore_other_tags() {
         let tag = 1;
