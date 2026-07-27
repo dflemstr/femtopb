@@ -1,18 +1,27 @@
+/// The backing storage of a lazily-parsed `Repeated`/`Packed` field.
+///
+/// The message-buffer window itself lives *alongside* this enum on the wrapper (as a
+/// [`window::Window`](crate::window::Window)), not inside the `MessageBuffer` variant. Keeping the
+/// per-occurrence region update a flat, unconditional write on the wrapper — rather than a write
+/// through this enum's variant — is what keeps the decode hot path provably panic-free.
 #[derive(Default)]
 pub enum List<'a, A> {
     #[default]
     Empty,
-    MessageBuffer(MessageBuffer<'a>),
+    /// A field decoded lazily from a message buffer; holds the field's tag. The buffer window it
+    /// scans is stored separately on the wrapping `Repeated`/`Packed`.
+    MessageBuffer(u32),
     Slice(&'a [A]),
 }
 
+/// The cursor an iterator walks: a field tag plus the remaining bytes of the field's window.
 #[derive(Clone, Copy, Debug)]
 pub struct MessageBuffer<'a> {
     /// The field tag to look for inside `data`.
     ///
     /// The field might occur several times, with other fields before, after, or in between.
     pub tag: u32,
-    /// The data of the entire message buffer.
+    /// The remaining bytes of the field's window, consumed as the iterator advances.
     pub data: &'a [u8],
 }
 
@@ -25,8 +34,8 @@ impl<'a, A> List<'a, A> {
         List::Slice(slice)
     }
 
-    pub const fn from_msg_buf(tag: u32, data: &'a [u8]) -> Self {
-        List::MessageBuffer(MessageBuffer { tag, data })
+    pub const fn from_msg_buf(tag: u32) -> Self {
+        List::MessageBuffer(tag)
     }
 }
 

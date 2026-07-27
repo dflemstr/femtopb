@@ -241,6 +241,7 @@
 
 mod bits;
 mod list;
+mod window;
 
 pub mod deferred;
 pub mod encoding;

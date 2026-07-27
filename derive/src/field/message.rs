@@ -59,10 +59,12 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
         let tag = self.tag;
-        let decode_raw_block = self.decode_raw_block(field, wire_type, msg_buf, cursor)?;
+        let decode_raw_block =
+            self.decode_raw_block(field, wire_type, msg_buf, field_start, cursor)?;
         Ok(quote::quote! {
             #tag => {
                 #decode_raw_block
@@ -75,6 +77,7 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
         let tag = self.tag;
@@ -83,8 +86,10 @@ impl Field {
             field::Label::Optional => quote::quote!(decode_optional),
             field::Label::Repeated => quote::quote!(decode_repeated),
         };
+        // Every field decoder takes the same arguments (whole `#msg_buf` plus this field's
+        // `#field_start`), even the ones that ignore them; only the lazily-parsed kinds use them.
         Ok(quote::quote! {
-            ::femtopb::runtime::message::#func(#tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
+            ::femtopb::runtime::message::#func(#tag, #wire_type, #msg_buf, #field_start, #cursor, &mut #field)?;
         })
     }
 

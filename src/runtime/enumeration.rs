@@ -65,7 +65,10 @@ pub fn encode_packed<E>(
         // a trailing iteration error (from a corrupt backing buffer) contributes 0, not one byte.
         let len: usize = values
             .iter()
-            .map(|r| r.map(|v| encoding::encoded_len_varint(v.to_raw() as u64)).unwrap_or(0))
+            .map(|r| {
+                r.map(|v| encoding::encoded_len_varint(v.to_raw() as u64))
+                    .unwrap_or(0)
+            })
             .sum();
         encoding::encode_varint(len as u64, cursor);
 
@@ -173,6 +176,7 @@ pub fn decode<'a, E>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     remaining: &mut &'a [u8],
     field: &mut enumeration::EnumValue<E>,
 ) -> Result<(), error::DecodeError>
@@ -190,6 +194,7 @@ pub fn decode_optional<'a, E>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     remaining: &mut &'a [u8],
     field: &mut Option<enumeration::EnumValue<E>>,
 ) -> Result<(), error::DecodeError>
@@ -212,12 +217,13 @@ where
     Ok(E::decode(encoding::decode_varint(remaining)? as i32))
 }
 
-#[inline]
+#[inline(never)]
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_repeated<'a, E>(
     tag: u32,
     wire_type: encoding::WireType,
     msg_buf: &'a [u8],
+    field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut repeated::Repeated<'a, enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
 ) -> Result<(), error::DecodeError>
@@ -225,18 +231,20 @@ where
     E: enumeration::Enumeration,
 {
     if field.is_unpopulated() {
-        *field = repeated::Repeated::from_msg_buf(tag, msg_buf);
+        *field = repeated::Repeated::from_msg_buf(tag, msg_buf, field_start);
     }
     encoding::skip_field(wire_type, tag, cursor)?;
+    field.extend_region(cursor);
     Ok(())
 }
 
-#[inline]
+#[inline(never)]
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_packed<'a, E>(
     tag: u32,
     wire_type: encoding::WireType,
     msg_buf: &'a [u8],
+    field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut packed::Packed<'a, enumeration::EnumValue<E>, crate::item_encoding::Enum<E>>,
 ) -> Result<(), error::DecodeError>
@@ -244,9 +252,10 @@ where
     E: enumeration::Enumeration,
 {
     if field.is_unpopulated() {
-        *field = packed::Packed::from_msg_buf(tag, msg_buf);
+        *field = packed::Packed::from_msg_buf(tag, msg_buf, field_start);
     }
     encoding::skip_field(wire_type, tag, cursor)?;
+    field.extend_region(cursor);
     Ok(())
 }
 

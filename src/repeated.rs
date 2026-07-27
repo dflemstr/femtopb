@@ -1,13 +1,20 @@
 //! `Repeated` scalar or composite values.
-use crate::{encoding, error, item_encoding, list};
+use crate::{encoding, error, item_encoding, list, window};
 use core::marker;
 use core::{fmt, slice};
 
 /// A sparse encoding of a sequence of scalar values.
 ///
 /// Use `.iter()` to iterate through the elements of this `Repeated`.
-#[repr(transparent)]
-pub struct Repeated<'a, A, E>(list::List<'a, A>, marker::PhantomData<E>)
+///
+/// The `window` is stored flat here, alongside the `list`, rather than inside `list`'s
+/// `MessageBuffer` variant: growing it while decoding is then an unconditional write, which keeps
+/// the decode path provably panic-free (see [`window::Window`]).
+pub struct Repeated<'a, A, E>(
+    list::List<'a, A>,
+    window::Window<'a>,
+    marker::PhantomData<E>,
+)
 where
     E: item_encoding::ItemEncoding<'a, A>;
 
@@ -42,7 +49,11 @@ where
     /// Creates a new, empty `Repeated` with minimal memory footprint.
     #[must_use]
     pub const fn empty() -> Self {
-        Self(list::List::empty(), marker::PhantomData)
+        Self(
+            list::List::empty(),
+            window::Window::empty(),
+            marker::PhantomData,
+        )
     }
 
     /// Creates a `Repeated` that uses the specified slice as its storage.
@@ -50,13 +61,32 @@ where
     /// The slice must live as long as this `Repeated` does.
     #[must_use]
     pub const fn from_slice(slice: &'a [A]) -> Self {
-        Self(list::List::from_slice(slice), marker::PhantomData)
+        Self(
+            list::List::from_slice(slice),
+            window::Window::empty(),
+            marker::PhantomData,
+        )
     }
 
-    // Used internally by the runtime during decoding
+    // Used internally by the runtime during decoding. `msg_buf` is the whole message buffer and
+    // `field_start` (a suffix of it) is where the field's first occurrence begins; the retained
+    // window initially covers from there to the end of the buffer (so an un-narrowed field still
+    // re-scans correctly) and `extend_region` narrows its tail to end at the last occurrence.
     #[must_use]
-    pub const fn from_msg_buf(tag: u32, data: &'a [u8]) -> Self {
-        Self(list::List::from_msg_buf(tag, data), marker::PhantomData)
+    pub fn from_msg_buf(tag: u32, msg_buf: &'a [u8], field_start: &[u8]) -> Self {
+        Self(
+            list::List::from_msg_buf(tag),
+            window::Window::covering(msg_buf, field_start),
+            marker::PhantomData,
+        )
+    }
+
+    // Used internally by the runtime during decoding, to grow the retained window so it ends at the
+    // occurrence that was just skipped. This is a flat, unconditional write (see the note on the
+    // struct), so it stays off the optimizer's critical path for the no-panic proof.
+    #[inline]
+    pub(crate) fn extend_region(&mut self, remaining: &[u8]) {
+        self.1.extend_to(remaining);
     }
 
     /// Whether the field has been populated from either deserialization or by the user.
@@ -97,11 +127,15 @@ impl<'a, A, E> Iter<'a, A, E>
 where
     E: item_encoding::ItemEncoding<'a, A>,
 {
-    fn from_list(lst: list::List<'a, A>) -> Self {
+    fn from_parts(lst: list::List<'a, A>, window: window::Window<'a>) -> Self {
         let repr = match lst {
             list::List::Empty => IterRepr::Empty,
-            list::List::MessageBuffer(msg_buf) => IterRepr::MessageBuffer {
-                msg_buf,
+            // Iterate over the narrowed window only; hand the cursor exactly the field's span.
+            list::List::MessageBuffer(tag) => IterRepr::MessageBuffer {
+                msg_buf: list::MessageBuffer {
+                    tag,
+                    data: window.region(),
+                },
                 packed_chunk: &[],
                 phantom: marker::PhantomData,
             },
@@ -189,7 +223,7 @@ where
     type IntoIter = Iter<'a, A, E>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter::from_list(self.0)
+        Iter::from_parts(self.0, self.1)
     }
 }
 
@@ -202,7 +236,7 @@ where
     type IntoIter = Iter<'a, A, E>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter::from_list(self.0)
+        Iter::from_parts(self.0, self.1)
     }
 }
 
