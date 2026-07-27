@@ -1608,4 +1608,130 @@ pub struct TestAllTypes {
         let actual = transform(original);
         assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
+
+    #[test]
+    fn transform_boxed_message_becomes_deferred() {
+        // prost boxes recursive/large messages (`boxed`, `Box<T>`); femtopb lowers that to a lazily
+        // parsed `Deferred`. Neither the attribute rewrite (`boxed` -> `deferred`) nor the type
+        // rewrite is exercised by any other test.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct Outer {
+    #[prost(message, optional, boxed, tag="1")]
+    pub inner: ::core::option::Option<::prost::alloc::boxed::Box<Inner>>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(message, optional, deferred, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(
+            actual.contains("::femtopb::deferred::Deferred<'a, Inner<'a>>"),
+            "{actual}"
+        );
+    }
+
+    #[test]
+    fn transform_default_packed_scalar_becomes_packed() {
+        // A repeated scalar with no explicit `packed` is packable by default, so it must lower to
+        // `Packed`, not `Repeated`. Every other repeated-scalar test pins `packed="false"`, so the
+        // `Packed` output branch is otherwise never taken.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(int32, repeated, tag="1")]
+    pub xs: ::prost::alloc::vec::Vec<i32>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(int32, packed, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(
+            actual.contains("::femtopb::packed::Packed<'a, i32, ::femtopb::item_encoding::Int32>"),
+            "{actual}"
+        );
+    }
+
+    #[test]
+    fn transform_explicit_packed_true_becomes_packed() {
+        // Exercises the `packed="true"` string-handling branch. Because the scalar is already
+        // packable, the `repeated` handler has emitted `packed`, so the `packed="true"` branch (whose
+        // in-place rewrite only fires when the label reads `repeated`) appends a *second* `packed`.
+        // The result — `packed, packed` — is a cosmetic quirk of the transform, harmless because the
+        // derive treats the `packed` flag idempotently. Pinned here so any future de-duplication is a
+        // conscious change rather than a silent one.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(sfixed64, repeated, packed="true", tag="1")]
+    pub xs: ::prost::alloc::vec::Vec<i64>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(sfixed64, packed, packed, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(!actual.contains("repeated"), "{actual}");
+        assert!(
+            actual
+                .contains("::femtopb::packed::Packed<'a, i64, ::femtopb::item_encoding::SFixed64>"),
+            "{actual}"
+        );
+    }
+
+    #[test]
+    fn transform_repeated_enum_defaults_to_packed_enumvalue() {
+        // Enumerations are packable, so a repeated enum with no explicit `packed` lowers to
+        // `Packed` over `EnumValue`. The only active enum-repeated coverage pins `packed="false"`.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(enumeration="Color", repeated, tag="1")]
+    pub colors: ::prost::alloc::vec::Vec<i32>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(enumeration, packed, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(
+            actual.contains(
+                "::femtopb::packed::Packed<\n        'a,\n        ::femtopb::enumeration::EnumValue<Color>,\n        ::femtopb::item_encoding::Enum<Color>,\n    >"
+            ) || actual.contains(
+                "::femtopb::packed::Packed<'a, ::femtopb::enumeration::EnumValue<Color>, ::femtopb::item_encoding::Enum<Color>>"
+            ),
+            "{actual}"
+        );
+    }
+
+    #[test]
+    fn transform_repeated_message_stays_repeated() {
+        // Messages are not packable, so a repeated message lowers to `Repeated` over the `Message`
+        // item encoding. Only the `#[ignore]`d reference test touches this otherwise.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(message, repeated, tag="1")]
+    pub items: ::prost::alloc::vec::Vec<Item>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(message, repeated, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(
+            actual.contains("::femtopb::repeated::Repeated<"),
+            "{actual}"
+        );
+        assert!(
+            actual.contains("::femtopb::item_encoding::Message<'a, Item<'a>>"),
+            "{actual}"
+        );
+    }
 }
