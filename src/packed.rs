@@ -314,8 +314,12 @@ where
                         // At this point, packed_chunk is a mut reference to wherever the original
                         // slice is stored (most likely a list::Iter::MessageBuffer) which means
                         // that the remainder of this chunk will be used on the next call to
-                        // Iter::next()
-                        let (chunk, rest) = cursor.split_at(len);
+                        // Iter::next(). `split_at_checked` (rather than the panicking `split_at`)
+                        // keeps this iteration panic-free — matching `Repeated` — if the declared
+                        // packed length runs past the retained buffer.
+                        let Some((chunk, rest)) = cursor.split_at_checked(len) else {
+                            return Err(error::DecodeError::BufferUnderflow);
+                        };
                         *packed_chunk = chunk;
                         *cursor = rest;
                         return Ok(Some(E::decode_single_value(packed_chunk)?));
@@ -377,6 +381,22 @@ mod tests {
         assert_eq!(
             packed.iter().collect::<Vec<_>>().as_slice(),
             &[Ok(1), Ok(2), Ok(3)]
+        );
+    }
+
+    #[test]
+    fn packed_length_running_past_buffer_errors_without_panicking() {
+        // A packed field whose length prefix (5) claims more bytes than remain (2). Decoding this
+        // used to hit `split_at`, which panics; it must now surface a clean `BufferUnderflow`
+        // instead (matching `Repeated`), keeping iteration panic-free on hostile input.
+        let tag = 1;
+        let key = encoding::WireType::LengthDelimited as u8 | tag << 3;
+        let msgbuf = &[key, 0x05, 0x01, 0x02];
+        let packed: Packed<i32, item_encoding::Int32> =
+            Packed::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            packed.iter().collect::<Vec<_>>().as_slice(),
+            &[Err(error::DecodeError::BufferUnderflow)]
         );
     }
 
