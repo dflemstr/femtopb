@@ -72,3 +72,100 @@ impl<'a> Window<'a> {
         self.data.get(self.start..self.end).unwrap_or(&[])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_covers_nothing() {
+        let w = Window::empty();
+        assert_eq!((w.start, w.end), (0, 0));
+        assert_eq!(w.region(), b"");
+    }
+
+    #[test]
+    fn anchored_starts_at_the_field_and_covers_nothing_until_extended() {
+        let data = b"abcdef";
+        let w = Window::anchored(data, &data[2..]); // `from` begins at offset 2
+        assert_eq!((w.start, w.end), (2, 2));
+        assert_eq!(w.region(), b"");
+    }
+
+    #[test]
+    fn covering_spans_from_the_field_to_the_end() {
+        let data = b"abcdef";
+        let w = Window::covering(data, &data[2..]);
+        assert_eq!((w.start, w.end), (2, 6));
+        assert_eq!(w.region(), b"cdef");
+    }
+
+    #[test]
+    fn extend_to_narrows_the_tail() {
+        let data = b"abcdef";
+        let mut w = Window::covering(data, &data[2..]); // start 2, end 6
+        w.extend_to(&data[4..]); // `remaining` begins at offset 4
+        assert_eq!((w.start, w.end), (2, 4));
+        assert_eq!(w.region(), b"cd");
+    }
+
+    #[test]
+    fn extend_to_can_be_called_repeatedly() {
+        let data = b"abcdef";
+        let mut w = Window::covering(data, &data[1..]); // start 1
+        w.extend_to(&data[3..]); // end -> 3
+        assert_eq!(w.region(), b"bc");
+        w.extend_to(&data[5..]); // end -> 5 (grows)
+        assert_eq!(w.region(), b"bcde");
+    }
+
+    #[test]
+    fn anchored_and_covering_saturate_when_from_is_longer_than_data() {
+        // A degenerate/hostile `from` longer than `data` must not underflow `start`; it clamps to 0.
+        let data = b"ab";
+        let longer = b"xxxxx";
+        let anchored = Window::anchored(data, longer);
+        assert_eq!((anchored.start, anchored.end), (0, 0));
+        assert_eq!(anchored.region(), b"");
+        let covering = Window::covering(data, longer);
+        assert_eq!((covering.start, covering.end), (0, 2));
+        assert_eq!(covering.region(), b"ab");
+    }
+
+    #[test]
+    fn extend_to_saturates_when_remaining_is_longer_than_data() {
+        // `remaining` longer than `data` clamps `end` to 0, leaving `start > end`; `region` must
+        // return empty via its `get(..).unwrap_or(&[])` guard rather than panicking.
+        let data = b"ab";
+        let mut w = Window::covering(data, data); // start 0, end 2
+        w.extend_to(b"xxxxx");
+        assert_eq!(w.end, 0);
+        assert_eq!(w.region(), b"");
+    }
+
+    #[test]
+    fn region_with_start_greater_than_end_is_empty_not_a_panic() {
+        let w = Window {
+            data: b"abcdef",
+            start: 4,
+            end: 2,
+        };
+        assert_eq!(w.region(), b"");
+    }
+
+    proptest::proptest! {
+        /// `region()` is on the panic-free decode path; it must never panic for *any* combination
+        /// of `data`, `start`, and `end` (including out-of-range and inverted offsets), always
+        /// returning a sub-slice of `data` or empty.
+        #[test]
+        fn region_never_panics_for_arbitrary_offsets(
+            data: Vec<u8>,
+            start in 0usize..64,
+            end in 0usize..64,
+        ) {
+            let w = Window { data: &data, start, end };
+            let region = w.region();
+            proptest::prop_assert!(region.len() <= data.len());
+        }
+    }
+}

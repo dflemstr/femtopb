@@ -24,13 +24,19 @@ pub enum DecodeError {
     /// Unlike [`VarintTooLarge`](Self::VarintTooLarge), this does not necessarily indicate a
     /// corrupt buffer: the same message may decode successfully on a target with a wider `usize`
     /// (for example a 64-bit platform). The offending length is enclosed.
-    #[cfg_attr(feature = "thiserror", error("Length {0} does not fit in a usize on this platform"))]
+    #[cfg_attr(
+        feature = "thiserror",
+        error("Length {0} does not fit in a usize on this platform")
+    )]
     LengthTooLargeForPlatform(u64),
     /// The provided buffer was too short to be able to decode the desired data.
     #[cfg_attr(feature = "thiserror", error("Provided buffer is too short"))]
     BufferUnderflow,
     /// An end group tag was encountered without a matching start group tag.
-    #[cfg_attr(feature = "thiserror", error("End group tag encountered without matching start group tag"))]
+    #[cfg_attr(
+        feature = "thiserror",
+        error("End group tag encountered without matching start group tag")
+    )]
     UnexpectedEndGroupTag,
     /// The specified wire type value was too large; the too-large value is enclosed.
     #[cfg_attr(feature = "thiserror", error("Wire type value too large: {0}"))]
@@ -62,13 +68,20 @@ pub enum DecodeError {
     InvalidTagValue(u32),
     /// The group nesting depth exceeded [`crate::encoding::RECURSION_LIMIT`] while skipping a
     /// field; the buffer is likely corrupt or hostile.
-    #[cfg_attr(feature = "thiserror", error("Maximum group nesting depth exceeded while skipping a field"))]
+    #[cfg_attr(
+        feature = "thiserror",
+        error("Maximum group nesting depth exceeded while skipping a field")
+    )]
     RecursionLimitReached,
     /// The encountered string field does not contain valid UTF-8 data.
-    #[cfg_attr(feature = "thiserror",
-        error("Invalid UTF-8 data: Valid up to {}. Error length: {}",
+    #[cfg_attr(
+        feature = "thiserror",
+        error(
+            "Invalid UTF-8 data: Valid up to {}. Error length: {}",
             valid_up_to,
-            OptionalLen(error_len)))]
+            OptionalLen(error_len)
+        )
+    )]
     InvalidUtf8 {
         valid_up_to: usize,
         error_len: Option<usize>,
@@ -97,7 +110,10 @@ impl core::fmt::Display for OptionalLen<'_> {
 /// infallible.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "thiserror", derive(thiserror_no_std::Error))]
-#[cfg_attr(feature = "thiserror", error("encode error: required {required} bytes but only {remaining} remaining"))]
+#[cfg_attr(
+    feature = "thiserror",
+    error("encode error: required {required} bytes but only {remaining} remaining")
+)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct EncodeError {
     /// How much space was required for the encode operation to complete
@@ -154,6 +170,95 @@ mod tests {
         assert_eq!(
             DecodeError::LengthTooLargeForPlatform(42).to_string(),
             "Length 42 does not fit in a usize on this platform"
+        );
+    }
+
+    #[test]
+    fn display_covers_the_remaining_variants() {
+        assert_eq!(
+            DecodeError::InvalidVarint.to_string(),
+            "Unable to decode varint: the last byte overflowed a 64-bit integer. \
+             The buffer is likely corrupt"
+        );
+        assert_eq!(
+            DecodeError::VarintTooLarge(7).to_string(),
+            "Varint larger than expected: 7"
+        );
+        assert_eq!(
+            DecodeError::BufferUnderflow.to_string(),
+            "Provided buffer is too short"
+        );
+        assert_eq!(
+            DecodeError::UnexpectedEndGroupTag.to_string(),
+            "End group tag encountered without matching start group tag"
+        );
+        assert_eq!(
+            DecodeError::InvalidWireTypeValue(6).to_string(),
+            "Wire type value too large: 6"
+        );
+        assert_eq!(
+            DecodeError::UnexpectedTagValue(9).to_string(),
+            "Unexpected tag value: 9"
+        );
+        assert_eq!(
+            DecodeError::RecursionLimitReached.to_string(),
+            "Maximum group nesting depth exceeded while skipping a field"
+        );
+    }
+
+    #[test]
+    fn unexpected_wire_type_display_uses_numeric_discriminants() {
+        // The custom formatter renders the wire types' `u8` discriminants (Varint=0, Length=2).
+        let e = DecodeError::UnexpectedWireTypeValue {
+            actual: encoding::WireType::Varint,
+            expected: encoding::WireType::LengthDelimited,
+        };
+        assert_eq!(e.to_string(), "Unexpected wire type: 0. Expected: 2");
+    }
+
+    #[test]
+    fn invalid_key_and_tag_value_share_display_text() {
+        // Documenting a known quirk: the two variants are distinct values but render identically.
+        assert_eq!(
+            DecodeError::InvalidKeyValue(42).to_string(),
+            DecodeError::InvalidTagValue(42).to_string()
+        );
+        assert_ne!(
+            DecodeError::InvalidKeyValue(42),
+            DecodeError::InvalidTagValue(42)
+        );
+    }
+
+    #[test]
+    fn encode_error_display() {
+        assert_eq!(
+            EncodeError::new(10, 4).to_string(),
+            "encode error: required 10 bytes but only 4 remaining"
+        );
+    }
+}
+
+#[cfg(test)]
+mod trait_tests {
+    use super::*;
+
+    // These do not depend on the `thiserror` Display impls, so they run in the default build too.
+
+    #[test]
+    fn encode_error_new_sets_fields() {
+        let e = EncodeError::new(10, 4);
+        assert_eq!(e.required, 10);
+        assert_eq!(e.remaining, 4);
+    }
+
+    #[test]
+    fn decode_error_equality_and_clone() {
+        let a = DecodeError::VarintTooLarge(1);
+        assert_eq!(a.clone(), a);
+        assert_ne!(a, DecodeError::VarintTooLarge(2));
+        assert_ne!(
+            DecodeError::InvalidKeyValue(1),
+            DecodeError::InvalidTagValue(1)
         );
     }
 }
