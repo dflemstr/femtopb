@@ -114,6 +114,10 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
     };
 
     Ok(quote::quote! {
+        // The generated impl reads every field — including any the user marked `#[deprecated]`, which
+        // it must to round-trip them — and is machine output rather than idiomatic hand-written code,
+        // so suppress lints on it (matching what `femtopb-build` does for the generated structs).
+        #[allow(clippy::all, deprecated)]
         #[automatically_derived]
         impl #impl_generics ::femtopb::message::Message<#lt> for #ident #ty_generics #where_clause {
             fn encode_raw(&self, cursor: &mut &mut [u8]) {
@@ -137,6 +141,7 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
             }
         }
 
+        #[allow(clippy::all, deprecated)]
         #[automatically_derived]
         impl #impl_generics ::core::default::Default for #ident #ty_generics #where_clause {
             fn default() -> Self {
@@ -179,6 +184,7 @@ fn try_derive_enumeration(input: syn::DeriveInput) -> syn::Result<proc_macro2::T
     let decode_match_arms = variant_numbers.iter().map(|(ident, discriminant)| quote::quote!(#discriminant => ::femtopb::enumeration::EnumValue::Known(Self::#ident),));
 
     Ok(quote::quote! {
+        #[allow(clippy::all, deprecated)]
         #[automatically_derived]
         impl #impl_generics ::femtopb::enumeration::Enumeration for #ident #ty_generics #where_clause {
             fn encode(&self) -> i32 {
@@ -317,6 +323,7 @@ fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenSt
     // TODO: there's potential lifetime shadowing if the `fn decode` lifetime is named the same as
     // a parent lifetime. Can we generate a fresh lifetime name here?
     Ok(quote::quote! {
+        #[allow(clippy::all, deprecated)]
         #[automatically_derived]
         impl #impl_generics ::femtopb::oneof::Oneof<#lt> for #ident #ty_generics #where_clause {
             fn encode(&self, cursor: &mut &mut [u8]) {

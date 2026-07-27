@@ -1,17 +1,17 @@
 use crate::generated::protobuf_unittest;
 
 // The modules are generated into `OUT_DIR` by `build.rs` (see the note there) and pulled in with
-// `include!` rather than living in a checked-in source tree. The `#[allow(clippy::all, deprecated)]`
-// on each module is the lint suppression that `femtopb-build` would otherwise emit as an inner
-// attribute inside the file (`build.rs` strips it, since `include!` disallows a leading inner
-// attribute).
+// `include!` rather than living in a checked-in source tree. `femtopb-build` now puts its
+// lint-suppression `#[allow(clippy::all, deprecated)]` on each generated item (not as a module inner
+// attribute), so `include!` works directly with nothing to strip. The module-level allow below is
+// only for the `defmt` feature: with it, each generated struct also gets `#[derive(defmt::Format)]`,
+// and a foreign derive's output can only be lint-suppressed from an enclosing scope, not per-item.
 #[allow(dead_code)]
+#[allow(clippy::all, deprecated)]
 pub mod generated {
-    #[allow(clippy::all, deprecated)]
     pub mod protobuf_unittest {
         include!(concat!(env!("OUT_DIR"), "/protobuf_unittest.rs"));
     }
-    #[allow(clippy::all, deprecated)]
     pub mod protobuf_unittest_import {
         include!(concat!(env!("OUT_DIR"), "/protobuf_unittest_import.rs"));
     }
