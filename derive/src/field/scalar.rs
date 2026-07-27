@@ -127,10 +127,12 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
         let tag = self.tag;
-        let decode_raw_block = self.decode_raw_block(field, wire_type, msg_buf, cursor)?;
+        let decode_raw_block =
+            self.decode_raw_block(field, wire_type, msg_buf, field_start, cursor)?;
         Ok(quote::quote! {
             #tag => {
                 #decode_raw_block
@@ -143,24 +145,22 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
         let ty = syn::Ident::new(&self.type_.to_string(), proc_macro2::Span::call_site());
         let tag = self.tag;
-        match self.kind {
-            field::Kind::Plain | field::Kind::Required => Ok(quote::quote! {
-                ::femtopb::runtime::scalar::#ty::decode(#tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
-            }),
-            field::Kind::Optional => Ok(quote::quote! {
-                ::femtopb::runtime::scalar::#ty::decode_optional(#tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
-            }),
-            field::Kind::Repeated => Ok(quote::quote! {
-                ::femtopb::runtime::scalar::#ty::decode_repeated(#tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
-            }),
-            field::Kind::Packed => Ok(quote::quote! {
-                ::femtopb::runtime::scalar::#ty::decode_packed(#tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
-            }),
-        }
+        let func = match self.kind {
+            field::Kind::Plain | field::Kind::Required => quote::quote!(decode),
+            field::Kind::Optional => quote::quote!(decode_optional),
+            field::Kind::Repeated => quote::quote!(decode_repeated),
+            field::Kind::Packed => quote::quote!(decode_packed),
+        };
+        // Every field decoder takes the same arguments (whole `#msg_buf` plus this field's
+        // `#field_start`), even the ones that ignore them; only the lazily-parsed kinds use them.
+        Ok(quote::quote! {
+            ::femtopb::runtime::scalar::#ty::#func(#tag, #wire_type, #msg_buf, #field_start, #cursor, &mut #field)?;
+        })
     }
 
     pub fn clear_block(

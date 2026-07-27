@@ -88,6 +88,7 @@ pub fn decode<'a, M>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     remaining: &mut &'a [u8],
     field: &mut M,
 ) -> Result<(), error::DecodeError>
@@ -105,6 +106,7 @@ pub fn decode_optional<'a, M>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     remaining: &mut &'a [u8],
     field: &mut Option<M>,
 ) -> Result<(), error::DecodeError>
@@ -123,7 +125,8 @@ where
     M: message::Message<'a>,
 {
     let len = encoding::decode_varint(cursor)?;
-    let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
+    let len =
+        usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
         let msg = M::decode(bytes)?;
@@ -134,12 +137,13 @@ where
     }
 }
 
-#[inline]
+#[inline(never)]
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_repeated<'a, M>(
     tag: u32,
     wire_type: encoding::WireType,
     msg_buf: &'a [u8],
+    field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut repeated::Repeated<'a, M, item_encoding::Message<'a, M>>,
 ) -> Result<(), error::DecodeError>
@@ -147,9 +151,10 @@ where
     M: message::Message<'a>,
 {
     if field.is_unpopulated() {
-        *field = repeated::Repeated::from_msg_buf(tag, msg_buf);
+        *field = repeated::Repeated::from_msg_buf(tag, msg_buf, field_start);
     }
     encoding::skip_field(wire_type, tag, cursor)?;
+    field.extend_region(cursor);
     Ok(())
 }
 

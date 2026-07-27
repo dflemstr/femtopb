@@ -137,54 +137,82 @@ impl Field {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn decode_match_arm(
         &self,
         matched_tag: &proc_macro2::TokenStream,
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         remaining: &proc_macro2::TokenStream,
         known_tags: &[u32],
     ) -> syn::Result<proc_macro2::TokenStream> {
         match *self {
-            Field::Scalar(ref f) => f.decode_match_arm(field, wire_type, msg_buf, remaining),
-            Field::Message(ref f) => f.decode_match_arm(field, wire_type, msg_buf, remaining),
-            Field::Enumeration(ref f) => f.decode_match_arm(field, wire_type, msg_buf, remaining),
-            Field::Oneof(ref f) => {
-                f.decode_match_arm(matched_tag, field, wire_type, msg_buf, remaining)
+            Field::Scalar(ref f) => {
+                f.decode_match_arm(field, wire_type, msg_buf, field_start, remaining)
             }
+            Field::Message(ref f) => {
+                f.decode_match_arm(field, wire_type, msg_buf, field_start, remaining)
+            }
+            Field::Enumeration(ref f) => {
+                f.decode_match_arm(field, wire_type, msg_buf, field_start, remaining)
+            }
+            Field::Oneof(ref f) => f.decode_match_arm(
+                matched_tag,
+                field,
+                wire_type,
+                msg_buf,
+                field_start,
+                remaining,
+            ),
             Field::UnknownFields(ref f) => f.decode_match_arm(
                 matched_tag,
                 field,
                 wire_type,
                 msg_buf,
+                field_start,
                 remaining,
                 known_tags,
             ),
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn decode_raw_block(
         &self,
         matched_tag: &proc_macro2::TokenStream,
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         remaining: &proc_macro2::TokenStream,
         known_tags: &[u32],
     ) -> syn::Result<proc_macro2::TokenStream> {
         match *self {
-            Field::Scalar(ref f) => f.decode_raw_block(field, wire_type, msg_buf, remaining),
-            Field::Message(ref f) => f.decode_raw_block(field, wire_type, msg_buf, remaining),
-            Field::Enumeration(ref f) => f.decode_raw_block(field, wire_type, msg_buf, remaining),
-            Field::Oneof(ref f) => {
-                f.decode_raw_block(matched_tag, field, wire_type, msg_buf, remaining)
+            Field::Scalar(ref f) => {
+                f.decode_raw_block(field, wire_type, msg_buf, field_start, remaining)
             }
+            Field::Message(ref f) => {
+                f.decode_raw_block(field, wire_type, msg_buf, field_start, remaining)
+            }
+            Field::Enumeration(ref f) => {
+                f.decode_raw_block(field, wire_type, msg_buf, field_start, remaining)
+            }
+            Field::Oneof(ref f) => f.decode_raw_block(
+                matched_tag,
+                field,
+                wire_type,
+                msg_buf,
+                field_start,
+                remaining,
+            ),
             Field::UnknownFields(ref f) => f.decode_raw_block(
                 matched_tag,
                 field,
                 wire_type,
                 msg_buf,
+                field_start,
                 remaining,
                 known_tags,
             ),

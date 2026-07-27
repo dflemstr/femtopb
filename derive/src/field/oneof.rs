@@ -40,6 +40,7 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
         let tags = &self.tags;
@@ -47,7 +48,7 @@ impl Field {
             Ok(quote::quote!())
         } else {
             let decode_raw_block =
-                self.decode_raw_block(matched_tag, field, wire_type, msg_buf, cursor)?;
+                self.decode_raw_block(matched_tag, field, wire_type, msg_buf, field_start, cursor)?;
             Ok(quote::quote! {
                 #(#tags)|* => {
                     #decode_raw_block
@@ -62,10 +63,13 @@ impl Field {
         field: &proc_macro2::TokenStream,
         wire_type: &proc_macro2::TokenStream,
         msg_buf: &proc_macro2::TokenStream,
+        field_start: &proc_macro2::TokenStream,
         cursor: &proc_macro2::TokenStream,
     ) -> syn::Result<proc_macro2::TokenStream> {
+        // Uniform decoder signature (whole `#msg_buf` plus this field's `#field_start`); the oneof
+        // decoder ignores both and dispatches on the tag.
         Ok(quote::quote! {
-            ::femtopb::runtime::oneof::decode(#matched_tag, #wire_type, #msg_buf, #cursor, &mut #field)?;
+            ::femtopb::runtime::oneof::decode(#matched_tag, #wire_type, #msg_buf, #field_start, #cursor, &mut #field)?;
         })
     }
 

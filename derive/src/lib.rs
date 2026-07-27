@@ -49,10 +49,11 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
     let decode_remaining = quote::quote!(&mut remaining);
     let encode_cursor = quote::quote!(cursor);
     let wire_type = quote::quote!(wire_type);
-    // The buffer position at the start of the current field (before its key). Passing this — rather
-    // than the whole message buffer — to each field's decoder lets the lazily-parsed field types
-    // (`repeated`/`packed`) and `unknown_fields` anchor their retained slice at their first
-    // occurrence, so re-iterating/re-encoding them skips the fields that precede it.
+    // The whole message buffer, and the buffer position at the start of the current field (before
+    // its key). The lazily-parsed field types (`repeated`/`packed`) and `unknown_fields` record
+    // their span as offsets of `field_start` into `msg_buf`, so re-iterating/re-encoding them skips
+    // the fields that precede (and, once narrowed, follow) their occurrences.
+    let msg_buf = quote::quote!(msg_buf);
     let field_start = quote::quote!(field_start);
 
     let encode_raw_blocks = fields
@@ -70,6 +71,7 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
                 &quote::quote!(tag),
                 &quote::quote!(value.#id),
                 &wire_type,
+                &msg_buf,
                 &field_start,
                 &decode_remaining,
                 &known_tags,
@@ -290,10 +292,13 @@ fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenSt
                     "This variant has multiple field `tags` defined, which is not supported",
                 ));
             };
+            // A oneof's variants are never lazily-parsed, so `msg_buf`/`field_start` are ignored;
+            // `O::decode` only has the one buffer parameter, so pass it for both positions.
             let decode_raw_block = v.field.decode_raw_block(
                 &quote::quote!(tag),
                 &quote::quote!(v),
                 &quote::quote!(wire_type),
+                &quote::quote!(msg_buf),
                 &quote::quote!(msg_buf),
                 &quote::quote!(cursor),
                 &[],
@@ -352,7 +357,9 @@ fn get_first_lifetime<'a>(
 ) -> syn::Result<&'a syn::Lifetime> {
     first_lifetime(generics).ok_or(syn::Error::new(
         proc_macro2::Span::call_site(),
-        format!("`{derived_trait}` must only be derived for structs which have a lifetime parameter"),
+        format!(
+            "`{derived_trait}` must only be derived for structs which have a lifetime parameter"
+        ),
     ))
 }
 

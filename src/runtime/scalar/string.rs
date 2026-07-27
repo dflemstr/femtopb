@@ -45,6 +45,7 @@ pub fn decode<'a>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut &'a str,
 ) -> Result<(), error::DecodeError> {
@@ -58,6 +59,7 @@ pub fn decode_optional<'a>(
     _tag: u32,
     wire_type: encoding::WireType,
     _msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut Option<&'a str>,
 ) -> Result<(), error::DecodeError> {
@@ -71,7 +73,8 @@ pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a str, error::DecodeError> {
     let len = encoding::decode_varint(cursor)?;
-    let len = usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
+    let len =
+        usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
     if cursor.len() >= len {
         let (bytes, rest) = cursor.split_at(len);
         let string = str::from_utf8(bytes).map_err(|e| error::DecodeError::InvalidUtf8 {

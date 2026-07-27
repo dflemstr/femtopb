@@ -30,6 +30,7 @@ pub fn decode<'a, O>(
     tag: u32,
     wire_type: encoding::WireType,
     msg_buf: &'a [u8],
+    _field_start: &'a [u8],
     cursor: &mut &'a [u8],
     field: &mut Option<O>,
 ) -> Result<(), error::DecodeError>

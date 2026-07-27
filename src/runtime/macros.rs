@@ -61,35 +61,39 @@ macro_rules! decode_packed_repeated {
         use $crate::packed;
         use $crate::repeated;
 
-        #[inline]
+        #[inline(never)]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_repeated<$lt>(
             tag: u32,
             wire_type: encoding::WireType,
             msg_buf: &$lt [u8],
+            field_start: &$lt [u8],
             cursor: &mut &$lt [u8],
             field: &mut repeated::Repeated<$lt, $ty, $item_encoding>,
         ) -> Result<(), error::DecodeError> {
             if field.is_unpopulated() {
-                *field = repeated::Repeated::from_msg_buf(tag, msg_buf);
+                *field = repeated::Repeated::from_msg_buf(tag, msg_buf, field_start);
             }
             encoding::skip_field(wire_type, tag, cursor)?;
+            field.extend_region(cursor);
             Ok(())
         }
 
-        #[inline]
+        #[inline(never)]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub fn decode_packed<$lt>(
             tag: u32,
             wire_type: encoding::WireType,
             msg_buf: &$lt [u8],
+            field_start: &$lt [u8],
             cursor: &mut &$lt [u8],
             field: &mut packed::Packed<$lt, $ty, $item_encoding>,
         ) -> Result<(), error::DecodeError> {
             if field.is_unpopulated() {
-                *field = packed::Packed::from_msg_buf(tag, msg_buf);
+                *field = packed::Packed::from_msg_buf(tag, msg_buf, field_start);
             }
             encoding::skip_field(wire_type, tag, cursor)?;
+            field.extend_region(cursor);
             Ok(())
         }
     };
@@ -211,7 +215,7 @@ macro_rules! varint {
 
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
-        pub fn decode(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], cursor: &mut &[u8], field: &mut $ty) -> Result<(), error::DecodeError> {
+        pub fn decode(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], _field_start: &[u8], cursor: &mut &[u8], field: &mut $ty) -> Result<(), error::DecodeError> {
             encoding::check_wire_type(WIRE_TYPE, wire_type)?;
             *field = decode_single_value(cursor)?;
             Ok(())
@@ -219,7 +223,7 @@ macro_rules! varint {
 
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
-        pub fn decode_optional(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], cursor: &mut &[u8], field: &mut Option<$ty>) -> Result<(), error::DecodeError> {
+        pub fn decode_optional(_tag: u32, wire_type: encoding::WireType, _msg_buf: &[u8], _field_start: &[u8], cursor: &mut &[u8], field: &mut Option<$ty>) -> Result<(), error::DecodeError> {
             encoding::check_wire_type(WIRE_TYPE, wire_type)?;
             *field = Some(decode_single_value(cursor)?);
             Ok(())
@@ -359,6 +363,7 @@ macro_rules! fixed_width {
             _tag: u32,
             wire_type: encoding::WireType,
             _msg_buf: &$lt [u8],
+            _field_start: &$lt [u8],
             cursor: &mut &$lt [u8],
             field: &mut $ty,
         ) -> Result<(), error::DecodeError> {
@@ -373,6 +378,7 @@ macro_rules! fixed_width {
             _tag: u32,
             wire_type: encoding::WireType,
             _msg_buf: &$lt[u8],
+            _field_start: &$lt[u8],
             cursor: &mut &$lt[u8],
             field: &mut Option<$ty>,
         ) -> Result<(), error::DecodeError> {
@@ -437,7 +443,9 @@ macro_rules! length_delimited {
                 .iter()
                 .map(|r| {
                     r.map(|v| {
-                        encoding::key_len(tag) + encoding::encoded_len_varint(v.len() as u64) + v.len()
+                        encoding::key_len(tag)
+                            + encoding::encoded_len_varint(v.len() as u64)
+                            + v.len()
                     })
                     .unwrap_or(0)
                 })
