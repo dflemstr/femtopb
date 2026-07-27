@@ -243,6 +243,11 @@ mod bits;
 mod list;
 mod window;
 
+// Doctest-only module holding `compile_fail` examples that pin the derive macros' error reporting.
+// Gated on `cfg(doctest)` so it is compiled only when collecting doctests.
+#[cfg(doctest)]
+mod compile_fail;
+
 pub mod deferred;
 pub mod encoding;
 pub mod enumeration;
