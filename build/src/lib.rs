@@ -269,20 +269,43 @@ fn transform(content: &str) -> String {
     // their names up front, since a message field can reference a oneof declared later in the file.
     let scalar_only_oneofs = collect_scalar_only_oneofs(&file.items);
 
+    // Generated code is machine output, not hand-written idiomatic Rust, and its exact shape can
+    // shift with the prost/protobuf toolchain. Suppress lints on every generated item so the code
+    // stays warning-clean. `clippy::all` covers e.g. oneofs, which are legitimately large-variant
+    // enums that cannot be boxed in a no-alloc crate; `deprecated` covers the encode/decode code the
+    // derive generates for a message's own `#[deprecated]` fields, which it must read to round-trip
+    // them. This is applied as an *outer* attribute on each top-level item (a module attribute
+    // covers everything nested inside it) rather than as a module-level *inner* attribute, so the
+    // output can be pulled in with `include!(...)` inside a `mod { ... }` block — which rejects a
+    // leading inner attribute — as well as via the usual `pub mod foo;` file wiring.
+    let allow: syn::Attribute = syn::parse_quote!(#[allow(clippy::all, deprecated)]);
     for item in &mut file.items {
         transform_item(item, &scalar_only_oneofs);
+        if let Some(attrs) = item_attrs_mut(item) {
+            attrs.insert(0, allow.clone());
+        }
     }
 
-    // Generated code is machine output, not hand-written idiomatic Rust, and its exact shape can
-    // shift with the prost/protobuf toolchain. Suppress lints for the whole generated module so it
-    // stays warning-clean without per-item annotations that would drift over time. `clippy::all`
-    // covers e.g. oneofs, which are legitimately large-variant enums that cannot be boxed in a
-    // no-alloc crate; `deprecated` covers the encode/decode code the derive generates for a
-    // message's own `#[deprecated]` fields, which it must read to round-trip them.
-    file.attrs
-        .insert(0, syn::parse_quote!(#![allow(clippy::all, deprecated)]));
-
     prettyplease::unparse(&file)
+}
+
+/// The attribute list of a top-level item, for the kinds of items generated code contains
+/// (messages become structs, enums/oneofs become enums, `as_str_name` etc. become impls, nested
+/// messages become modules). Returns `None` for item kinds that cannot carry attributes.
+fn item_attrs_mut(item: &mut syn::Item) -> Option<&mut Vec<syn::Attribute>> {
+    match item {
+        syn::Item::Struct(i) => Some(&mut i.attrs),
+        syn::Item::Enum(i) => Some(&mut i.attrs),
+        syn::Item::Impl(i) => Some(&mut i.attrs),
+        syn::Item::Mod(i) => Some(&mut i.attrs),
+        syn::Item::Const(i) => Some(&mut i.attrs),
+        syn::Item::Fn(i) => Some(&mut i.attrs),
+        syn::Item::Static(i) => Some(&mut i.attrs),
+        syn::Item::Type(i) => Some(&mut i.attrs),
+        syn::Item::Trait(i) => Some(&mut i.attrs),
+        syn::Item::Union(i) => Some(&mut i.attrs),
+        _ => None,
+    }
 }
 
 /// Collects the identity of every oneof enum in the file (recursing into modules) whose variants
@@ -397,12 +420,12 @@ fn transform_item(item: &mut syn::Item, scalar_only_oneofs: &collections::HashSe
             // prost-annotated) variants, consistent with how the reference set was collected.
             let borrows = oneof_borrows(enum_item);
             if borrows {
-                enum_item
-                    .generics
-                    .params
-                    .push(syn::GenericParam::Lifetime(syn::LifetimeParam::new(
-                        syn::Lifetime::new("'a", proc_macro2::Span::call_site()),
-                    )));
+                enum_item.generics.params.push(syn::GenericParam::Lifetime(
+                    syn::LifetimeParam::new(syn::Lifetime::new(
+                        "'a",
+                        proc_macro2::Span::call_site(),
+                    )),
+                ));
             }
 
             for variant in &mut enum_item.variants {
@@ -621,7 +644,10 @@ fn transform_field(field: &mut syn::Field, scalar_only_oneofs: &collections::Has
     transform_field_type(&mut field.ty, &metadata, scalar_only_oneofs);
 }
 
-fn transform_variant(variant: &mut syn::Variant, scalar_only_oneofs: &collections::HashSet<String>) {
+fn transform_variant(
+    variant: &mut syn::Variant,
+    scalar_only_oneofs: &collections::HashSet<String>,
+) {
     let mut metadata = FieldMetadata::default();
     for attr in &mut variant.attrs {
         transform_prost_attr(attr, &mut metadata);
@@ -654,8 +680,7 @@ fn transform_field_type(
             let generic_segment = path.segments.last_mut().unwrap();
             let inner_ty = get_single_generic_arg(generic_segment);
             transform_field_type(inner_ty, metadata, scalar_only_oneofs);
-            *ty = syn::parse2(quote::quote!(::femtopb::deferred::Deferred<'a, #inner_ty>))
-                .unwrap();
+            *ty = syn::parse2(quote::quote!(::femtopb::deferred::Deferred<'a, #inner_ty>)).unwrap();
         } else if has_same_path_idents(path, "::femtopb::alloc::vec::Vec")
             || has_same_path_idents(path, "::prost::alloc::vec::Vec")
         {
@@ -727,8 +752,7 @@ fn transform_field_type(
                 Some(v) => panic!("unable to determine item encoding for {:?}", v),
             };
             transform_field_type(inner_ty, metadata, scalar_only_oneofs);
-            *ty =
-                syn::parse2(quote::quote!(#base_type<'a, #inner_ty, #item_encoding>)).unwrap();
+            *ty = syn::parse2(quote::quote!(#base_type<'a, #inner_ty, #item_encoding>)).unwrap();
         } else if metadata.is_message || metadata.is_oneof.is_some() {
             // A scalar-only oneof is emitted without a lifetime parameter, so references to it
             // must not add one; messages (and borrowing oneofs) always carry `<'a>`. The oneof
@@ -745,8 +769,7 @@ fn transform_field_type(
                 *generic_segment = syn::parse2(quote::quote!(#ident<'a>)).unwrap();
             }
         } else if let Some(enum_ty) = &metadata.is_enum {
-            *ty = syn::parse2(quote::quote!(::femtopb::enumeration::EnumValue<#enum_ty>))
-                .unwrap();
+            *ty = syn::parse2(quote::quote!(::femtopb::enumeration::EnumValue<#enum_ty>)).unwrap();
         } else if has_same_path_idents(path, "::femtopb::alloc::string::String")
             || has_same_path_idents(path, "::prost::alloc::string::String")
         {
@@ -849,13 +872,18 @@ fn path_segments(p: &syn::Path) -> Vec<String> {
 mod tests {
     use super::*;
 
-    /// Strips the lint-suppression header that `transform` prepends to every generated module, so
-    /// the body-comparison tests below can assert on the transformed code itself.
-    fn strip_generated_header(generated: &str) -> String {
+    /// Strips the per-item lint-suppression attributes that `transform` prepends to every generated
+    /// item, so the body-comparison tests below can assert on the transformed code itself.
+    fn strip_lint_allows(generated: &str) -> String {
+        assert!(
+            generated.contains("#[allow(clippy::all, deprecated)]"),
+            "generated code should carry the per-item lint-suppression attribute"
+        );
         generated
-            .trim()
-            .strip_prefix("#![allow(clippy::all, deprecated)]")
-            .expect("generated code should start with the lint-suppression header")
+            .lines()
+            .filter(|line| line.trim() != "#[allow(clippy::all, deprecated)]")
+            .collect::<Vec<_>>()
+            .join("\n")
             .trim()
             .to_string()
     }
@@ -887,7 +915,7 @@ pub struct NestedMessage<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -929,10 +957,7 @@ pub mod msg {
         // Borrowing oneof: keeps its lifetime, its phantom variant, and its qualified reference.
         assert!(actual.contains("pub enum Borrowing<'a>"), "{actual}");
         assert!(actual.contains("_Phantom"), "{actual}");
-        assert!(
-            actual.contains("Option<msg::Borrowing<'a>>"),
-            "{actual}"
-        );
+        assert!(actual.contains("Option<msg::Borrowing<'a>>"), "{actual}");
     }
 
     #[test]
@@ -1018,7 +1043,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -1106,7 +1131,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -1252,7 +1277,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -1372,7 +1397,7 @@ pub struct TestAllTypes<'a> {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -1412,7 +1437,7 @@ pub enum NestedEnum {
 }
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 
     #[test]
@@ -1581,6 +1606,6 @@ pub struct TestAllTypes {
         let expected = r#"
 "#;
         let actual = transform(original);
-        assert_eq!(strip_generated_header(&actual), expected.trim());
+        assert_eq!(strip_lint_allows(&actual), expected.trim());
     }
 }
