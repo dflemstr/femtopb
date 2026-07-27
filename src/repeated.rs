@@ -331,3 +331,170 @@ where
     // We consumed the entire message buffer; there can't be any further occurrences
     Ok(None)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn key(tag: u8, wire_type: encoding::WireType) -> u8 {
+        wire_type as u8 | tag << 3
+    }
+
+    #[test]
+    fn empty_has_no_elements_and_is_unpopulated() {
+        let repeated: Repeated<i32, item_encoding::Int32> = Repeated::empty();
+        assert!(repeated.is_empty());
+        assert!(repeated.is_unpopulated());
+        assert_eq!(repeated.len(), 0);
+        assert_eq!(repeated.iter().collect::<Vec<_>>().as_slice(), &[]);
+    }
+
+    #[test]
+    fn from_slice_is_populated_even_when_empty() {
+        let empty: Repeated<i32, item_encoding::Int32> = Repeated::from_slice(&[]);
+        assert!(empty.is_empty());
+        // A slice-backed field counts as populated: the user supplied it, so the decoder must not
+        // overwrite it with a later occurrence.
+        assert!(!empty.is_unpopulated());
+
+        let full: Repeated<i32, item_encoding::Int32> = Repeated::from_slice(&[1, 2, 3]);
+        assert!(!full.is_empty());
+        assert!(!full.is_unpopulated());
+        assert_eq!(full.len(), 3);
+        assert_eq!(
+            full.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1), Ok(2), Ok(3)]
+        );
+    }
+
+    #[test]
+    fn from_msg_buf_decodes_the_unpacked_wire_format() {
+        // tag 1 repeated three times as bare varints.
+        let tag = 1;
+        let v = encoding::WireType::Varint;
+        let msgbuf = &[key(tag, v), 1, key(tag, v), 2, key(tag, v), 3];
+        let repeated: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert!(!repeated.is_unpopulated());
+        assert_eq!(repeated.len(), 3);
+        assert_eq!(
+            repeated.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1), Ok(2), Ok(3)]
+        );
+    }
+
+    #[test]
+    fn from_msg_buf_decodes_the_packed_wire_format() {
+        // proto3 packs repeated scalars by default, so `Repeated` must accept a length-delimited
+        // chunk too.
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::LengthDelimited), 3, 1, 2, 3];
+        let repeated: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            repeated.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok(1), Ok(2), Ok(3)]
+        );
+    }
+
+    #[test]
+    fn other_tags_are_skipped() {
+        let tag = 1;
+        let msgbuf = &[
+            key(2, encoding::WireType::Varint),
+            9, // an unrelated varint field
+            key(tag, encoding::WireType::Varint),
+            7,
+            key(3, encoding::WireType::ThirtyTwoBit),
+            0,
+            0,
+            0,
+            0, // an unrelated fixed32 field
+        ];
+        let repeated: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(repeated.iter().collect::<Vec<_>>().as_slice(), &[Ok(7)]);
+    }
+
+    #[test]
+    fn a_wrong_wire_type_for_our_tag_surfaces_unexpected_wire_type() {
+        // Tag 1 is our field (element wire type varint), but here it carries a 32-bit wire type,
+        // which is neither the scalar encoding nor the packed (length-delimited) encoding.
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::ThirtyTwoBit), 0, 0, 0, 0];
+        let repeated: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            repeated.iter().collect::<Vec<_>>().as_slice(),
+            &[Err(error::DecodeError::UnexpectedWireTypeValue {
+                actual: encoding::WireType::ThirtyTwoBit,
+                expected: encoding::WireType::Varint,
+            })]
+        );
+    }
+
+    #[test]
+    fn an_error_stops_iteration_permanently() {
+        // A packed chunk whose declared length (5) runs past the buffer errors; after that the
+        // iterator must be exhausted, not resume.
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::LengthDelimited), 5, 1, 2];
+        let repeated: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        let mut iter = repeated.iter();
+        assert_eq!(iter.next(), Some(Err(error::DecodeError::BufferUnderflow)));
+        assert_eq!(iter.next(), None);
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn partial_eq_holds_across_representations() {
+        let tag = 1;
+        let msgbuf = &[key(tag, encoding::WireType::LengthDelimited), 3, 1, 2, 3];
+        let from_buf: Repeated<i32, item_encoding::Int32> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        let from_slice: Repeated<i32, item_encoding::Int32> = Repeated::from_slice(&[1, 2, 3]);
+
+        // Same logical elements, different backing representation: still equal.
+        assert_eq!(from_buf, from_slice);
+
+        let different: Repeated<i32, item_encoding::Int32> = Repeated::from_slice(&[1, 2, 4]);
+        assert_ne!(from_buf, different);
+    }
+
+    #[test]
+    fn composite_string_element_type_decodes_from_the_buffer() {
+        // String elements are length-delimited (their wire type equals `WireType::LengthDelimited`),
+        // so each occurrence is `key, len, bytes` and there is no packed form.
+        let tag = 1;
+        let ld = encoding::WireType::LengthDelimited;
+        let msgbuf = &[
+            key(tag, ld),
+            2,
+            b'h',
+            b'i',
+            key(tag, ld),
+            3,
+            b'y',
+            b'e',
+            b'p',
+        ];
+        let repeated: Repeated<&str, item_encoding::String> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        assert_eq!(
+            repeated.iter().collect::<Vec<_>>().as_slice(),
+            &[Ok("hi"), Ok("yep")]
+        );
+    }
+
+    #[test]
+    fn composite_bytes_element_type_decodes_from_the_buffer() {
+        let tag = 2;
+        let ld = encoding::WireType::LengthDelimited;
+        let msgbuf = &[key(tag, ld), 1, 0xAB, key(tag, ld), 2, 0xCD, 0xEF];
+        let repeated: Repeated<&[u8], item_encoding::Bytes> =
+            Repeated::from_msg_buf(tag as u32, msgbuf, msgbuf);
+        let items = repeated.iter().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(items, vec![&[0xAB][..], &[0xCD, 0xEF][..]]);
+    }
+}

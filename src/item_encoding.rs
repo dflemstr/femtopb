@@ -157,3 +157,114 @@ where
         runtime::message::decode_single_value(cursor)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::encoding::WireType;
+
+    /// The wire type each element encoding advertises. `Repeated`/`Packed` route on this constant to
+    /// decide the scalar-vs-packed branch, so pinning it guards against a silent mis-tagging.
+    #[test]
+    fn wire_types_match_the_protobuf_spec() {
+        assert_eq!(Bool::WIRE_TYPE, WireType::Varint);
+        assert_eq!(Int32::WIRE_TYPE, WireType::Varint);
+        assert_eq!(Int64::WIRE_TYPE, WireType::Varint);
+        assert_eq!(SInt32::WIRE_TYPE, WireType::Varint);
+        assert_eq!(SInt64::WIRE_TYPE, WireType::Varint);
+        assert_eq!(UInt32::WIRE_TYPE, WireType::Varint);
+        assert_eq!(UInt64::WIRE_TYPE, WireType::Varint);
+
+        assert_eq!(Double::WIRE_TYPE, WireType::SixtyFourBit);
+        assert_eq!(Fixed64::WIRE_TYPE, WireType::SixtyFourBit);
+        assert_eq!(SFixed64::WIRE_TYPE, WireType::SixtyFourBit);
+
+        assert_eq!(Float::WIRE_TYPE, WireType::ThirtyTwoBit);
+        assert_eq!(Fixed32::WIRE_TYPE, WireType::ThirtyTwoBit);
+        assert_eq!(SFixed32::WIRE_TYPE, WireType::ThirtyTwoBit);
+
+        assert_eq!(Bytes::WIRE_TYPE, WireType::LengthDelimited);
+        assert_eq!(String::WIRE_TYPE, WireType::LengthDelimited);
+        assert_eq!(
+            <Message<'_, Msg> as ItemEncoding<'_, Msg>>::WIRE_TYPE,
+            WireType::LengthDelimited
+        );
+
+        // Enumerations travel as varints, just like the integer scalars.
+        assert_eq!(
+            <Enum<Color> as ItemEncoding<'_, enumeration::EnumValue<Color>>>::WIRE_TYPE,
+            WireType::Varint
+        );
+    }
+
+    #[test]
+    fn scalar_decode_single_value_advances_the_cursor() {
+        // int32 150 is the two varint bytes 0x96 0x01; decoding must consume exactly those.
+        let mut cursor: &[u8] = &[0x96, 0x01, 0xFF];
+        assert_eq!(Int32::decode_single_value(&mut cursor).unwrap(), 150);
+        assert_eq!(cursor, &[0xFF]);
+    }
+
+    #[test]
+    fn string_decode_single_value_reads_a_length_delimited_chunk() {
+        let mut cursor: &[u8] = &[0x02, b'h', b'i', 0x00];
+        assert_eq!(String::decode_single_value(&mut cursor).unwrap(), "hi");
+        assert_eq!(cursor, &[0x00]);
+    }
+
+    #[test]
+    fn enum_decode_single_value_maps_known_and_unknown() {
+        let mut known: &[u8] = &[0x01];
+        assert_eq!(
+            Enum::<Color>::decode_single_value(&mut known).unwrap(),
+            enumeration::EnumValue::Known(Color::Green)
+        );
+        let mut unknown: &[u8] = &[0x09];
+        assert_eq!(
+            Enum::<Color>::decode_single_value(&mut unknown).unwrap(),
+            enumeration::EnumValue::Unknown(9)
+        );
+    }
+
+    // A minimal `Enumeration` hand-implemented so these tests don't depend on the derive macro.
+    #[derive(Clone, Copy, Debug, Default, PartialEq)]
+    enum Color {
+        #[default]
+        Red,
+        Green,
+        Blue,
+    }
+
+    impl enumeration::Enumeration for Color {
+        fn encode(&self) -> i32 {
+            *self as i32
+        }
+
+        fn decode(value: i32) -> enumeration::EnumValue<Self> {
+            match value {
+                0 => enumeration::EnumValue::Known(Color::Red),
+                1 => enumeration::EnumValue::Known(Color::Green),
+                2 => enumeration::EnumValue::Known(Color::Blue),
+                other => enumeration::EnumValue::Unknown(other),
+            }
+        }
+    }
+
+    // A trivial `Message` so the composite `Message` item encoding has a concrete type to name.
+    #[derive(Clone, Debug, Default, PartialEq)]
+    struct Msg;
+
+    impl<'a> message::Message<'a> for Msg {
+        fn encoded_len(&self) -> usize {
+            0
+        }
+
+        fn encode_raw(&self, _cursor: &mut &mut [u8]) {}
+
+        fn decode(_buf: &'a [u8]) -> Result<Self, error::DecodeError> {
+            Ok(Msg)
+        }
+
+        fn clear(&mut self) {}
+    }
+}
