@@ -467,4 +467,212 @@ mod tests {
         skip_field(WireType::StartGroup, 1, &mut cursor).expect("shallow group should skip");
         assert!(cursor.is_empty());
     }
+
+    #[test]
+    fn decode_varint_underflows_on_empty_and_truncated_input() {
+        for truncated in [&[][..], &[0x80][..], &[0xFF, 0xFF][..]] {
+            let mut cursor = truncated;
+            assert_eq!(
+                decode_varint(&mut cursor),
+                Err(error::DecodeError::BufferUnderflow),
+                "input {truncated:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn decode_varint_overflow_is_invalid_varint() {
+        // u64::MAX + 1: ten bytes whose final byte carries value bits past bit 64.
+        let mut cursor: &[u8] = &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x02];
+        assert_eq!(
+            decode_varint(&mut cursor),
+            Err(error::DecodeError::InvalidVarint)
+        );
+        // Tenth byte with the continuation bit set is likewise invalid (never an 11th byte).
+        let mut cont: &[u8] = &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80];
+        assert_eq!(
+            decode_varint(&mut cont),
+            Err(error::DecodeError::InvalidVarint)
+        );
+    }
+
+    #[test]
+    fn wire_type_try_from_maps_known_and_rejects_reserved() {
+        use WireType::*;
+        for (value, expected) in [
+            (0, Varint),
+            (1, SixtyFourBit),
+            (2, LengthDelimited),
+            (3, StartGroup),
+            (4, EndGroup),
+            (5, ThirtyTwoBit),
+        ] {
+            assert_eq!(WireType::try_from(value), Ok(expected));
+        }
+        for reserved in [6u64, 7, u64::MAX] {
+            assert_eq!(
+                WireType::try_from(reserved),
+                Err(error::DecodeError::InvalidWireTypeValue(reserved))
+            );
+        }
+    }
+
+    #[test]
+    fn key_round_trips_for_every_wire_type_and_max_tag() {
+        use WireType::*;
+        for wire_type in [
+            Varint,
+            SixtyFourBit,
+            LengthDelimited,
+            StartGroup,
+            EndGroup,
+            ThirtyTwoBit,
+        ] {
+            for tag in [MIN_TAG, 2, 16, 1000, MAX_TAG] {
+                let mut buf = [0u8; 8];
+                let mut w: &mut [u8] = &mut buf;
+                encode_key(tag, wire_type, &mut w);
+                let written = 8 - w.len();
+                let mut r: &[u8] = &buf[..written];
+                assert_eq!(decode_key(&mut r), Ok((tag, wire_type)));
+                assert!(r.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn decode_key_rejects_reserved_wire_type() {
+        // tag 1, wire type value 6 (reserved): key = (1 << 3) | 6 = 14.
+        let mut cursor: &[u8] = &[14];
+        assert_eq!(
+            decode_key(&mut cursor),
+            Err(error::DecodeError::InvalidWireTypeValue(6))
+        );
+    }
+
+    #[test]
+    fn decode_key_rejects_key_above_u32_max() {
+        // Varint encoding of 2^32, which does not fit in a u32 key.
+        let mut cursor: &[u8] = &[0x80, 0x80, 0x80, 0x80, 0x10];
+        assert_eq!(
+            decode_key(&mut cursor),
+            Err(error::DecodeError::InvalidKeyValue(1 << 32))
+        );
+    }
+
+    #[test]
+    fn decode_key_rejects_tag_zero() {
+        // key 0 = tag 0, wire type Varint; tag 0 is below MIN_TAG.
+        let mut cursor: &[u8] = &[0x00];
+        assert_eq!(
+            decode_key(&mut cursor),
+            Err(error::DecodeError::InvalidTagValue(0))
+        );
+    }
+
+    #[test]
+    fn key_len_matches_encoded_width() {
+        assert_eq!(key_len(1), 1);
+        assert_eq!(key_len(15), 1); // 15 << 3 = 120, still one byte
+        assert_eq!(key_len(16), 2); // 16 << 3 = 128, needs two bytes
+        assert_eq!(key_len(MAX_TAG), 5);
+    }
+
+    #[test]
+    fn check_wire_type_accepts_match_and_rejects_mismatch() {
+        assert_eq!(check_wire_type(WireType::Varint, WireType::Varint), Ok(()));
+        assert_eq!(
+            check_wire_type(WireType::Varint, WireType::LengthDelimited),
+            Err(error::DecodeError::UnexpectedWireTypeValue {
+                expected: WireType::Varint,
+                actual: WireType::LengthDelimited,
+            })
+        );
+    }
+
+    #[test]
+    fn skip_field_advances_past_each_scalar_wire_type() {
+        // Varint field: a two-byte varint plus a trailing sentinel.
+        let mut varint: &[u8] = &[0x96, 0x01, 0xEE];
+        skip_field(WireType::Varint, 1, &mut varint).unwrap();
+        assert_eq!(varint, &[0xEE]);
+
+        // 32-bit and 64-bit fixed fields skip exactly 4 and 8 bytes.
+        let mut b32: &[u8] = &[1, 2, 3, 4, 0xEE];
+        skip_field(WireType::ThirtyTwoBit, 1, &mut b32).unwrap();
+        assert_eq!(b32, &[0xEE]);
+        let mut b64: &[u8] = &[1, 2, 3, 4, 5, 6, 7, 8, 0xEE];
+        skip_field(WireType::SixtyFourBit, 1, &mut b64).unwrap();
+        assert_eq!(b64, &[0xEE]);
+
+        // Length-delimited field: a length prefix of 3 then 3 content bytes.
+        let mut ld: &[u8] = &[0x03, b'a', b'b', b'c', 0xEE];
+        skip_field(WireType::LengthDelimited, 1, &mut ld).unwrap();
+        assert_eq!(ld, &[0xEE]);
+    }
+
+    #[test]
+    fn skip_field_underflows_on_truncated_fixed_and_length_fields() {
+        let mut short32: &[u8] = &[1, 2, 3];
+        assert_eq!(
+            skip_field(WireType::ThirtyTwoBit, 1, &mut short32),
+            Err(error::DecodeError::BufferUnderflow)
+        );
+        let mut short64: &[u8] = &[1, 2, 3, 4, 5, 6, 7];
+        assert_eq!(
+            skip_field(WireType::SixtyFourBit, 1, &mut short64),
+            Err(error::DecodeError::BufferUnderflow)
+        );
+        // Length prefix claims 5 bytes but only 2 follow.
+        let mut short_ld: &[u8] = &[0x05, 0xAA, 0xBB];
+        assert_eq!(
+            skip_field(WireType::LengthDelimited, 1, &mut short_ld),
+            Err(error::DecodeError::BufferUnderflow)
+        );
+    }
+
+    #[test]
+    fn skip_field_rejects_stray_and_mismatched_end_groups() {
+        // An `EndGroup` wire type at the top level has no matching start.
+        let mut top: &[u8] = &[];
+        assert_eq!(
+            skip_field(WireType::EndGroup, 1, &mut top),
+            Err(error::DecodeError::UnexpectedEndGroupTag)
+        );
+        // A group opened for tag 1 but closed with an `EndGroup` for tag 2.
+        let end_group_tag2 = (2u8 << 3) | WireType::EndGroup as u8;
+        let mut mismatched: &[u8] = &[end_group_tag2];
+        assert_eq!(
+            skip_field(WireType::StartGroup, 1, &mut mismatched),
+            Err(error::DecodeError::UnexpectedEndGroupTag)
+        );
+    }
+
+    #[test]
+    fn skip_field_recursion_limit_is_exact() {
+        // A properly-closed nesting of `depth` groups: `depth` StartGroups followed by `depth + 1`
+        // EndGroups (the extra one closes the outermost group whose key the caller consumed).
+        fn nested_group(depth: usize) -> Vec<u8> {
+            let start = (1u8 << 3) | WireType::StartGroup as u8;
+            let end = (1u8 << 3) | WireType::EndGroup as u8;
+            let mut buf = vec![start; depth];
+            buf.resize(2 * depth + 1, end);
+            buf
+        }
+
+        // Exactly RECURSION_LIMIT levels of nesting must still succeed.
+        let ok = nested_group(RECURSION_LIMIT as usize);
+        let mut cursor: &[u8] = &ok;
+        skip_field(WireType::StartGroup, 1, &mut cursor)
+            .expect("exactly RECURSION_LIMIT levels should skip");
+        assert!(cursor.is_empty());
+
+        // One level deeper trips the limit.
+        let too_deep = nested_group(RECURSION_LIMIT as usize + 1);
+        let mut cursor: &[u8] = &too_deep;
+        assert_eq!(
+            skip_field(WireType::StartGroup, 1, &mut cursor),
+            Err(error::DecodeError::RecursionLimitReached)
+        );
+    }
 }
