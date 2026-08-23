@@ -6,6 +6,37 @@ pub mod oneof;
 pub mod scalar;
 pub mod unknown_fields;
 
+/// The smallest field tag the protobuf wire format allows.
+///
+/// Mirrors `femtopb::encoding::MIN_TAG`; the derive crate cannot depend on `femtopb` (that would be
+/// circular), so the bounds are restated here.
+const MIN_TAG: u32 = 1;
+/// The largest field tag the protobuf wire format allows.
+///
+/// Mirrors `femtopb::encoding::MAX_TAG`. A tag above this does not fit in the 29 bits a field key
+/// reserves for it, so encoding one would silently truncate it on the wire.
+const MAX_TAG: u32 = (1 << 29) - 1;
+
+/// Rejects a tag that the wire format cannot represent.
+///
+/// Encoding a key packs the tag into the upper 29 bits of a varint, so a tag of `0` or one above
+/// [`MAX_TAG`] cannot round-trip: the generated encoder would silently write a corrupt key (and the
+/// resulting bytes fail to decode), and the runtime's `debug_assert` would fire only in debug
+/// builds. The schema is fully known at expansion time, so reject it here instead.
+pub fn check_tag_in_range(span: proc_macro2::Span, tag: u32) -> syn::Result<()> {
+    if (MIN_TAG..=MAX_TAG).contains(&tag) {
+        Ok(())
+    } else {
+        Err(syn::Error::new(
+            span,
+            format_args!(
+                "tag `{tag}` is out of range; protobuf field tags must be between {MIN_TAG} and \
+                 {MAX_TAG} (inclusive)"
+            ),
+        ))
+    }
+}
+
 pub enum Field {
     Scalar(scalar::Field),
     Message(message::Field),
@@ -395,6 +426,7 @@ impl Spec {
     }
 
     fn set_tag(&mut self, span: proc_macro2::Span, tag: u32) -> syn::Result<()> {
+        check_tag_in_range(span, tag)?;
         if !self.tags.is_empty() {
             Err(syn::Error::new(span, "Can't specify both `tags` and `tag`"))
         } else if let Some(tag) = self.tag.replace(tag) {
@@ -416,6 +448,9 @@ impl Spec {
                 "Must specify at least one tag in the `tags` array",
             ))
         } else {
+            for &tag in &tags {
+                check_tag_in_range(span, tag)?;
+            }
             self.tags = tags;
             Ok(())
         }

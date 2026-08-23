@@ -258,6 +258,8 @@ fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenSt
         }
     };
 
+    check_oneof_tags_are_unique(&variants)?;
+
     let encode_match_arms = variants
         .iter()
         .map(|v| {
@@ -348,6 +350,25 @@ fn try_derive_oneof(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenSt
     })
 }
 
+/// Rejects a oneof in which two variants claim the same tag.
+///
+/// `Oneof::decode` dispatches on the tag, so a repeated tag makes the later variant unreachable: a
+/// value encoded as that variant decodes back as the earlier one.
+fn check_oneof_tags_are_unique(variants: &[OneofVariant]) -> syn::Result<()> {
+    let mut seen = std::collections::HashSet::new();
+    for variant in variants {
+        for tag in variant.field.tags() {
+            if !seen.insert(tag) {
+                return Err(syn::Error::new(
+                    variant.ident.span(),
+                    format_args!("tag `{tag}` is used by more than one variant of this oneof"),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn first_lifetime(generics: &syn::Generics) -> Option<&syn::Lifetime> {
     generics.params.iter().find_map(|p| {
         if let syn::GenericParam::Lifetime(syn::LifetimeParam { lifetime, .. }) = p {
@@ -404,23 +425,70 @@ fn parse_fields(
 ) -> syn::Result<Vec<(proc_macro2::TokenStream, field::Field)>> {
     use syn::spanned::Spanned as _;
 
-    fields
+    let fields = fields
         .into_iter()
         .enumerate()
         .map(|(i, field)| {
+            let span = field.span();
             let id = field
                 .ident
                 .as_ref()
                 .map(|x| quote::quote!(#x))
                 .unwrap_or_else(|| {
                     let index = u32::try_from(i).unwrap();
-                    let span = field.span();
                     let index = syn::Index { index, span };
                     quote::quote!(#index)
                 });
-            let field = field::Field::new(field.span(), field.attrs)?;
-            Ok(field.map(|f| (id, f)))
+            let parsed = field::Field::new(span, field.attrs)?;
+            Ok(parsed.map(|f| (span, id, f)))
         })
-        .flat_map(|r| r.transpose())
-        .collect()
+        .flat_map(|r: syn::Result<_>| r.transpose())
+        .collect::<syn::Result<Vec<_>>>()?;
+
+    check_tags_are_unique(&fields)?;
+    check_at_most_one_unknown_fields(&fields)?;
+
+    Ok(fields.into_iter().map(|(_, id, f)| (id, f)).collect())
+}
+
+type ParsedField = (proc_macro2::Span, proc_macro2::TokenStream, field::Field);
+
+/// Rejects a message in which two fields claim the same tag.
+///
+/// The generated decoder is a `match` on the tag, so a repeated tag makes every arm after the first
+/// dead: the later field silently never decodes, and both fields still encode, producing a message
+/// that does not round-trip. Nothing in the generated code warns about this, so catch it here.
+fn check_tags_are_unique(fields: &[ParsedField]) -> syn::Result<()> {
+    let mut seen = std::collections::HashMap::new();
+    for (span, _, f) in fields {
+        for tag in f.tags() {
+            if let Some(_previous) = seen.insert(tag, *span) {
+                return Err(syn::Error::new(
+                    *span,
+                    format_args!("tag `{tag}` is used by more than one field of this message"),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Rejects a message that declares more than one `#[femtopb(unknown_fields)]` field.
+///
+/// The field backs the catch-all arm of the generated decoder, so only the first one would ever be
+/// populated; any further ones would silently stay empty and drop the fields they claim to preserve.
+fn check_at_most_one_unknown_fields(fields: &[ParsedField]) -> syn::Result<()> {
+    let mut seen = false;
+    for (span, _, f) in fields {
+        if matches!(f, field::Field::UnknownFields(_)) {
+            if seen {
+                return Err(syn::Error::new(
+                    *span,
+                    "a message can have at most one `#[femtopb(unknown_fields)]` field",
+                ));
+            }
+            seen = true;
+        }
+    }
+    Ok(())
 }
