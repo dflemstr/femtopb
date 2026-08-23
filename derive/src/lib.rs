@@ -38,7 +38,10 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     let RawFields { fields } = collect_raw_fields(ident.span(), input.data)?;
-    let mut fields = parse_fields(fields)?;
+    let ParsedFields {
+        encoded: mut fields,
+        ignored: ignored_fields,
+    } = parse_fields(fields)?;
     fields.sort_by_key(|(_, field)| field.ord_key());
 
     let known_tags = fields
@@ -88,6 +91,13 @@ fn try_derive_message(input: syn::DeriveInput) -> syn::Result<proc_macro2::Token
             let expr = f.default_expr()?;
             Ok(quote::quote!(#id: #expr,))
         })
+        // A field the macro ignores still exists on the struct, so `Default` has to give it a
+        // value; `PhantomData` and anything else `phantom` is used for is `Default` already.
+        .chain(
+            ignored_fields
+                .iter()
+                .map(|id| Ok(quote::quote!(#id: ::core::default::Default::default(),))),
+        )
         .collect::<syn::Result<Vec<_>>>()?;
 
     let encoded_len_body = if encoded_len_exprs.is_empty() {
@@ -420,35 +430,44 @@ fn collect_raw_fields(span: proc_macro2::Span, data: syn::Data) -> syn::Result<R
     }
 }
 
-fn parse_fields(
-    fields: Vec<syn::Field>,
-) -> syn::Result<Vec<(proc_macro2::TokenStream, field::Field)>> {
+/// The fields of a message as the derive sees them: the ones it generates code for, plus the ones
+/// it deliberately ignores (`#[femtopb(phantom)]`). The ignored ones still have to be named by the
+/// generated `Default` impl, which constructs the struct literally.
+struct ParsedFields {
+    encoded: Vec<(proc_macro2::TokenStream, field::Field)>,
+    ignored: Vec<proc_macro2::TokenStream>,
+}
+
+fn parse_fields(fields: Vec<syn::Field>) -> syn::Result<ParsedFields> {
     use syn::spanned::Spanned as _;
 
-    let fields = fields
-        .into_iter()
-        .enumerate()
-        .map(|(i, field)| {
-            let span = field.span();
-            let id = field
-                .ident
-                .as_ref()
-                .map(|x| quote::quote!(#x))
-                .unwrap_or_else(|| {
-                    let index = u32::try_from(i).unwrap();
-                    let index = syn::Index { index, span };
-                    quote::quote!(#index)
-                });
-            let parsed = field::Field::new(span, field.attrs)?;
-            Ok(parsed.map(|f| (span, id, f)))
-        })
-        .flat_map(|r: syn::Result<_>| r.transpose())
-        .collect::<syn::Result<Vec<_>>>()?;
+    let mut encoded = Vec::new();
+    let mut ignored = Vec::new();
 
-    check_tags_are_unique(&fields)?;
-    check_at_most_one_unknown_fields(&fields)?;
+    for (i, field) in fields.into_iter().enumerate() {
+        let span = field.span();
+        let id = field
+            .ident
+            .as_ref()
+            .map(|x| quote::quote!(#x))
+            .unwrap_or_else(|| {
+                let index = u32::try_from(i).unwrap();
+                let index = syn::Index { index, span };
+                quote::quote!(#index)
+            });
+        match field::Field::new(span, field.attrs)? {
+            Some(f) => encoded.push((span, id, f)),
+            None => ignored.push(id),
+        }
+    }
 
-    Ok(fields.into_iter().map(|(_, id, f)| (id, f)).collect())
+    check_tags_are_unique(&encoded)?;
+    check_at_most_one_unknown_fields(&encoded)?;
+
+    Ok(ParsedFields {
+        encoded: encoded.into_iter().map(|(_, id, f)| (id, f)).collect(),
+        ignored,
+    })
 }
 
 type ParsedField = (proc_macro2::Span, proc_macro2::TokenStream, field::Field);

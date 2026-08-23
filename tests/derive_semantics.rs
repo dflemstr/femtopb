@@ -129,3 +129,51 @@ fn unknown_fields_survive_a_decode_encode_round_trip() {
     assert_eq!(reparsed, decoded);
     assert!(buf.windows(2).any(|w| w == [0x18, 0x2a]));
 }
+
+/// A message with no protobuf fields at all still needs its lifetime parameter to be used, and
+/// `#[femtopb(phantom)]` is how a hand-written schema says "ignore this field". The macro skips it
+/// for encoding and decoding, but the generated `Default` impl constructs the struct literally, so
+/// it has to name the field anyway.
+#[derive(Clone, Debug, PartialEq, femtopb::Message)]
+pub struct PhantomOnly<'a> {
+    #[femtopb(phantom)]
+    pub phantom: core::marker::PhantomData<&'a ()>,
+}
+
+#[test]
+fn a_phantom_field_is_ignored_but_still_defaulted() {
+    let msg = PhantomOnly::default();
+    assert_eq!(msg.encoded_len(), 0);
+    // Nothing on the wire, and an arbitrary buffer decodes to the same (empty) value: the phantom
+    // field takes part in neither direction.
+    let mut none: [u8; 0] = [];
+    msg.encode(&mut none.as_mut_slice()).unwrap();
+    assert_eq!(PhantomOnly::decode(&[]).unwrap(), msg);
+}
+
+/// The same, alongside real fields: the phantom sits between them to check it is skipped rather
+/// than shifting the others.
+#[derive(Clone, Debug, PartialEq, femtopb::Message)]
+pub struct PhantomBesideRealFields<'a> {
+    #[femtopb(int32, tag = 1)]
+    pub a: i32,
+    #[femtopb(phantom)]
+    pub phantom: core::marker::PhantomData<&'a ()>,
+    #[femtopb(string, tag = 2)]
+    pub b: &'a str,
+    #[femtopb(unknown_fields)]
+    pub unknown_fields: femtopb::UnknownFields<'a>,
+}
+
+#[test]
+fn a_phantom_field_beside_real_fields_round_trips() {
+    let msg = PhantomBesideRealFields {
+        a: 5,
+        b: "hi",
+        ..Default::default()
+    };
+    let mut buf = vec![0u8; msg.encoded_len()];
+    msg.encode(&mut buf.as_mut_slice()).unwrap();
+    assert_eq!(buf, vec![0x08, 0x05, 0x12, 0x02, b'h', b'i']);
+    assert_eq!(PhantomBesideRealFields::decode(buf.as_slice()).unwrap(), msg);
+}
