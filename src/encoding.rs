@@ -41,12 +41,21 @@ impl TryFrom<u64> for WireType {
 /// format.
 ///
 /// The provided `cursor` buffer will be updated to point to just after the encoded integer.
+///
+/// If the buffer runs out mid-value, encoding stops rather than panicking; see the note on
+/// [`crate::message::Message::encode_raw`] for why that is the right failure mode here.
 #[inline]
 #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_varint(mut value: u64, cursor: &mut &mut [u8]) {
     loop {
         let buf = mem::take(cursor);
-        let (byte, rest) = buf.split_first_mut().unwrap();
+        let Some((byte, rest)) = buf.split_first_mut() else {
+            // Out of room: leave the cursor empty and stop. `Message::encode` sizes the buffer
+            // from `encoded_len` before writing a single byte, so this is unreachable through the
+            // checked API; going through `encode_raw` with an undersized buffer truncates instead
+            // of panicking, which is what keeps this function provably panic-free.
+            return;
+        };
         *cursor = rest;
         if value < 0x80 {
             *byte = value as u8;

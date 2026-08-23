@@ -9,7 +9,9 @@ where
     M: message::Message<'a>,
 {
     encoding::encode_key(tag, encoding::WireType::LengthDelimited, cursor);
-    encoding::encode_varint(u64::try_from(value.encoded_len()).unwrap(), cursor);
+    // `usize` is at most 64 bits wide on every target Rust supports, so this widening cast is
+    // lossless; a fallible `u64::try_from(..).unwrap()` would only add an unprovable panic branch.
+    encoding::encode_varint(value.encoded_len() as u64, cursor);
     value.encode_raw(cursor);
 }
 
@@ -45,7 +47,8 @@ where
     M: message::Message<'a>,
 {
     let len = value.encoded_len();
-    encoding::key_len(tag) + encoding::encoded_len_varint(u64::try_from(len).unwrap()) + len
+    // Lossless widening cast; see the note in `encode`.
+    encoding::key_len(tag) + encoding::encoded_len_varint(len as u64) + len
 }
 
 #[inline]
@@ -127,14 +130,15 @@ where
     let len = encoding::decode_varint(cursor)?;
     let len =
         usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
-    if cursor.len() >= len {
-        let (bytes, rest) = cursor.split_at(len);
-        let msg = M::decode(bytes)?;
-        *cursor = rest;
-        Ok(msg)
-    } else {
-        Err(error::DecodeError::BufferUnderflow)
-    }
+    // `split_at_checked` rather than a length test plus the panicking `split_at`: the two are
+    // equivalent, but only the former leaves no panic branch for the optimizer to have to prove
+    // unreachable.
+    let Some((bytes, rest)) = cursor.split_at_checked(len) else {
+        return Err(error::DecodeError::BufferUnderflow);
+    };
+    let msg = M::decode(bytes)?;
+    *cursor = rest;
+    Ok(msg)
 }
 
 #[inline(never)]
