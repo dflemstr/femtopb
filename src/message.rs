@@ -6,7 +6,11 @@ use crate::error;
 pub trait Message<'a>: Clone {
     /// Encodes the message to a buffer pointed-to by the specified cursor.
     ///
-    /// This method will panic if the buffer pointed to by `cursor` has insufficient capacity.
+    /// The buffer must have room for [`encoded_len`](Self::encoded_len) bytes. If it does not, the
+    /// message is written up to the point where the buffer runs out and the rest is dropped: this
+    /// method does not panic, because nothing in this crate does. Use [`encode`](Self::encode),
+    /// which checks the capacity up front and reports an [`error::EncodeError`] instead of writing
+    /// a partial message.
     ///
     /// Meant to be used only by `Message` implementations.
     fn encode_raw(&self, cursor: &mut &mut [u8]);

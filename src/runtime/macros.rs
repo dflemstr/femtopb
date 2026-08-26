@@ -391,11 +391,7 @@ macro_rules! fixed_width {
         #[inline]
         #[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
         pub(crate) fn decode_single_value(cursor: &mut &[u8]) -> Result<$ty, error::DecodeError> {
-            if cursor.len() >= $width {
-                Ok(bits::$get(cursor))
-            } else {
-                Err(error::DecodeError::BufferUnderflow)
-            }
+            bits::$get(cursor).ok_or(error::DecodeError::BufferUnderflow)
         }
 
         $crate::runtime::macros::decode_packed_repeated!($lt, $ty, $item_encoding);
