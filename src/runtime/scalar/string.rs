@@ -6,6 +6,7 @@ use core::{mem, str};
 pub(crate) const WIRE_TYPE: encoding::WireType = encoding::WireType::LengthDelimited;
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode(tag: u32, value: &str, default: &str, cursor: &mut &mut [u8]) {
     if value != default {
         encode_key_value(tag, value, cursor);
@@ -13,6 +14,7 @@ pub fn encode(tag: u32, value: &str, default: &str, cursor: &mut &mut [u8]) {
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn encode_optional(tag: u32, value: Option<&str>, default: &str, cursor: &mut &mut [u8]) {
     if let Some(value) = value {
         if value != default {
@@ -24,23 +26,30 @@ pub fn encode_optional(tag: u32, value: Option<&str>, default: &str, cursor: &mu
 crate::runtime::macros::length_delimited!('a, &'a str, crate::item_encoding::String);
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn encode_key_value(tag: u32, value: &str, cursor: &mut &mut [u8]) {
     encoding::encode_key(tag, encoding::WireType::LengthDelimited, cursor);
     encode_single_value(value, cursor);
 }
 
+// Writes the length prefix followed by the payload. If the buffer runs out, the write is skipped
+// and the cursor is left empty rather than panicking — see the note on `Message::encode_raw`.
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 fn encode_single_value(value: &str, cursor: &mut &mut [u8]) {
     let len = value.len();
     encoding::encode_varint(len as u64, cursor);
 
     let buf = mem::take(cursor);
-    let (bytes, rest) = buf.split_at_mut(len);
-    *cursor = rest;
+    let Some((bytes, rest)) = buf.split_at_mut_checked(len) else {
+        return;
+    };
     bytes.copy_from_slice(value.as_bytes());
+    *cursor = rest;
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode<'a>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -55,6 +64,7 @@ pub fn decode<'a>(
 }
 
 #[inline]
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub fn decode_optional<'a>(
     _tag: u32,
     wire_type: encoding::WireType,
@@ -69,23 +79,22 @@ pub fn decode_optional<'a>(
 }
 
 // Also used by `crate::item_encoding`
+#[cfg_attr(feature = "assert-no-panic", no_panic::no_panic)]
 pub(crate) fn decode_single_value<'a>(
     cursor: &mut &'a [u8],
 ) -> Result<&'a str, error::DecodeError> {
     let len = encoding::decode_varint(cursor)?;
     let len =
         usize::try_from(len).map_err(|_| error::DecodeError::LengthTooLargeForPlatform(len))?;
-    if cursor.len() >= len {
-        let (bytes, rest) = cursor.split_at(len);
-        let string = str::from_utf8(bytes).map_err(|e| error::DecodeError::InvalidUtf8 {
-            valid_up_to: e.valid_up_to(),
-            error_len: e.error_len(),
-        })?;
-        *cursor = rest;
-        Ok(string)
-    } else {
-        Err(error::DecodeError::BufferUnderflow)
-    }
+    let Some((bytes, rest)) = cursor.split_at_checked(len) else {
+        return Err(error::DecodeError::BufferUnderflow);
+    };
+    let string = str::from_utf8(bytes).map_err(|e| error::DecodeError::InvalidUtf8 {
+        valid_up_to: e.valid_up_to(),
+        error_len: e.error_len(),
+    })?;
+    *cursor = rest;
+    Ok(string)
 }
 
 crate::runtime::macros::decode_packed_repeated!('a, &'a str, crate::item_encoding::String);
