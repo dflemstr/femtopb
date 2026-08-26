@@ -457,15 +457,18 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
             )
             .unwrap();
-        let mut new_attr = "femtopb(".to_string();
-        let mut needs_separator = false;
-
-        let mut add_separator = |str: &mut String| {
-            if needs_separator {
-                str.push_str(", ");
-            }
-            needs_separator = true;
-        };
+        // The `femtopb` arguments, assembled in the order prost emitted them. A repeated field's
+        // label (`repeated` vs `packed`) cannot be decided as soon as it is seen — prost writes
+        // `repeated` first and may follow it with `packed="false"` — so its position is reserved in
+        // `label_slot` and filled in once the whole attribute has been read. Deciding it in one
+        // place, from the whole attribute, keeps the emitted word and the `is_repeated`/`is_packed`
+        // flags (which choose the Rust field type) from ever disagreeing, whatever order the
+        // arguments arrive in.
+        let mut parts: Vec<String> = Vec::new();
+        let mut label_slot: Option<usize> = None;
+        // `Some` once prost has stated the packing explicitly via `packed="true"`/`packed="false"`;
+        // otherwise the label falls back to whether the element type can be packed at all.
+        let mut explicit_packed: Option<bool> = None;
 
         for meta in nested.iter() {
             let path = meta.path();
@@ -487,8 +490,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 || path.is_ident("bytes")
             {
                 let name = path.segments[0].ident.to_string();
-                add_separator(&mut new_attr);
-                new_attr.push_str(&name);
+                parts.push(name.clone());
                 metadata.is_scalar = Some(name);
             } else if path.is_ident("optional")
                 || path.is_ident("required")
@@ -496,61 +498,36 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 || path.is_ident("hash_map")
                 || path.is_ident("btree_map")
             {
-                add_separator(&mut new_attr);
-                new_attr.push_str(&path.segments[0].ident.to_string());
+                parts.push(path.segments[0].ident.to_string());
             } else if path.is_ident("boxed") {
-                add_separator(&mut new_attr);
-                new_attr.push_str("deferred");
+                parts.push("deferred".to_string());
             } else if path.is_ident("message") || path.is_ident("group") {
                 metadata.is_message = true;
-                add_separator(&mut new_attr);
-                new_attr.push_str(&path.segments[0].ident.to_string());
+                parts.push(path.segments[0].ident.to_string());
             } else if path.is_ident("repeated") {
-                let packed = if let Some(scalar) = &metadata.is_scalar {
-                    // Assume packed, change back later if we encounter `packed="false"` from
-                    // prost
-                    can_pack_scalar(scalar)
-                } else {
-                    metadata.is_enum.is_some()
-                };
-
-                add_separator(&mut new_attr);
-                if packed {
-                    metadata.is_packed = true;
-                    new_attr.push_str("packed");
-                } else {
-                    metadata.is_repeated = true;
-                    new_attr.push_str("repeated");
-                }
+                label_slot.get_or_insert_with(|| {
+                    parts.push(String::new());
+                    parts.len() - 1
+                });
             } else if path.is_ident("packed") {
                 let name_value = meta.require_name_value().unwrap();
                 match &name_value.value {
                     syn::Expr::Lit(syn::ExprLit {
                         lit: syn::Lit::Str(str),
                         ..
-                    }) => match str.value().as_str() {
-                        "true" => {
-                            metadata.is_repeated = false;
-                            metadata.is_packed = true;
-                            if new_attr.contains("repeated") {
-                                new_attr = new_attr.replace("repeated", "packed");
-                            } else {
-                                add_separator(&mut new_attr);
-                                new_attr.push_str("packed");
-                            }
-                        }
-                        "false" => {
-                            metadata.is_repeated = true;
-                            metadata.is_packed = false;
-                            if new_attr.contains("packed") {
-                                new_attr = new_attr.replace("packed", "repeated");
-                            } else {
-                                add_separator(&mut new_attr);
-                                new_attr.push_str("packed");
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
+                    }) => {
+                        explicit_packed = Some(match str.value().as_str() {
+                            "true" => true,
+                            "false" => false,
+                            other => panic!("unexpected prost `packed` value: {other:?}"),
+                        });
+                        // prost always writes `repeated` before `packed=...`, so the slot normally
+                        // already exists; reserve one anyway rather than dropping the label.
+                        label_slot.get_or_insert_with(|| {
+                            parts.push(String::new());
+                            parts.len() - 1
+                        });
+                    }
                     _ => unreachable!(),
                 }
             } else if path.is_ident("enumeration") {
@@ -561,8 +538,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         ..
                     }) => {
                         metadata.is_enum = Some(syn::parse_str(str.value().as_str()).unwrap());
-                        add_separator(&mut new_attr);
-                        new_attr.push_str(&path.segments[0].ident.to_string());
+                        parts.push(path.segments[0].ident.to_string());
                     }
                     _ => unreachable!(),
                 }
@@ -574,8 +550,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         ..
                     }) => {
                         metadata.is_oneof = Some(syn::parse_str(str.value().as_str()).unwrap());
-                        add_separator(&mut new_attr);
-                        new_attr.push_str(&path.segments[0].ident.to_string());
+                        parts.push(path.segments[0].ident.to_string());
                     }
                     _ => unreachable!(),
                 }
@@ -586,9 +561,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         lit: syn::Lit::Str(str),
                         ..
                     }) => {
-                        add_separator(&mut new_attr);
-                        new_attr.push_str("tag = ");
-                        new_attr.push_str(str.value().as_str());
+                        parts.push(format!("tag = {}", str.value()));
                     }
                     _ => unreachable!(),
                 }
@@ -599,10 +572,7 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         lit: syn::Lit::Str(str),
                         ..
                     }) => {
-                        add_separator(&mut new_attr);
-                        new_attr.push_str("tags = [");
-                        new_attr.push_str(str.value().as_str());
-                        new_attr.push(']');
+                        parts.push(format!("tags = [{}]", str.value()));
                     }
                     _ => unreachable!(),
                 }
@@ -613,16 +583,15 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                         lit: syn::Lit::Str(str),
                         ..
                     }) => {
-                        add_separator(&mut new_attr);
-                        new_attr.push_str("default = ");
-                        if metadata.is_scalar.as_deref() == Some("string") {
-                            new_attr.push_str(&format!("{:?}", str.value().as_str()));
+                        let value = if metadata.is_scalar.as_deref() == Some("string") {
+                            format!("{:?}", str.value())
                         } else if let Some(e) = metadata.is_enum.as_ref() {
                             let ident: syn::Ident = syn::parse_str(str.value().as_str()).unwrap();
-                            new_attr.push_str(&quote::quote!(#e::#ident).to_string());
+                            quote::quote!(#e::#ident).to_string()
                         } else {
-                            new_attr.push_str(str.value().as_str());
-                        }
+                            str.value()
+                        };
+                        parts.push(format!("default = {value}"));
                     }
                     _ => unreachable!(),
                 }
@@ -630,7 +599,18 @@ fn transform_prost_attr(attr: &mut syn::Attribute, metadata: &mut FieldMetadata)
                 panic!("unhandled prost attr: {:?}", path.get_ident().unwrap());
             }
         }
-        new_attr.push(')');
+        if let Some(slot) = label_slot {
+            // Without an explicit `packed=...`, pack whatever the wire format allows to be packed:
+            // that is the proto3 default, and it is what prost signals by staying silent.
+            let packed = explicit_packed.unwrap_or_else(|| match metadata.is_scalar.as_deref() {
+                Some(scalar) => can_pack_scalar(scalar),
+                None => metadata.is_enum.is_some(),
+            });
+            metadata.is_packed = packed;
+            metadata.is_repeated = !packed;
+            parts[slot] = if packed { "packed" } else { "repeated" }.to_string();
+        }
+        let new_attr = format!("femtopb({})", parts.join(", "));
         let new_meta: syn::Meta = syn::parse_str(&new_attr).unwrap();
         attr.meta = new_meta;
     }
@@ -1656,13 +1636,54 @@ pub struct M {
     }
 
     #[test]
+    fn packed_false_before_repeated_still_yields_a_repeated_field() {
+        // prost-build writes `repeated` before `packed="false"`, but nothing about the attribute
+        // format guarantees that order. Under the old string-patching approach the label and the
+        // `is_repeated`/`is_packed` flags were updated independently, so a reordered attribute
+        // produced a `packed` label on a field typed as `Repeated` — code that does not compile.
+        // The label is now derived from the same state the field type is, so order cannot matter.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(int32, packed="false", repeated, tag="1")]
+    pub xs: ::prost::alloc::vec::Vec<i32>,
+}
+"#;
+        let actual = transform(original);
+        assert!(actual.contains("#[femtopb(int32, repeated, tag = 1)]"), "{actual}");
+        assert!(!actual.contains("packed"), "{actual}");
+        assert!(
+            actual.contains("::femtopb::repeated::Repeated<'a, i32, ::femtopb::item_encoding::Int32>"),
+            "{actual}"
+        );
+    }
+
+    #[test]
+    fn packed_false_on_a_repeated_enum_yields_a_repeated_field() {
+        // Enums are packable as far as prost is concerned, so it emits `packed="false"` for an
+        // explicitly-unpacked repeated enum just as it does for scalars. Both the label and the
+        // field type must follow.
+        let original = r#"
+#[derive(Clone, PartialEq, ::femtopb::Message)]
+pub struct M {
+    #[prost(enumeration="Color", repeated, packed="false", tag="1")]
+    pub xs: ::prost::alloc::vec::Vec<i32>,
+}
+"#;
+        let actual = transform(original);
+        assert!(
+            actual.contains("#[femtopb(enumeration, repeated, tag = 1)]"),
+            "{actual}"
+        );
+        assert!(actual.contains("::femtopb::repeated::Repeated"), "{actual}");
+        assert!(!actual.contains("::femtopb::packed::Packed"), "{actual}");
+    }
+
+    #[test]
     fn transform_explicit_packed_true_becomes_packed() {
-        // Exercises the `packed="true"` string-handling branch. Because the scalar is already
-        // packable, the `repeated` handler has emitted `packed`, so the `packed="true"` branch (whose
-        // in-place rewrite only fires when the label reads `repeated`) appends a *second* `packed`.
-        // The result — `packed, packed` — is a cosmetic quirk of the transform, harmless because the
-        // derive treats the `packed` flag idempotently. Pinned here so any future de-duplication is a
-        // conscious change rather than a silent one.
+        // Exercises the `packed="true"` string-handling branch. The scalar is already packable, so
+        // `repeated` and `packed="true"` agree; the label is written once, from the final state of
+        // the metadata, rather than once per argument that touched it.
         let original = r#"
 #[derive(Clone, PartialEq, ::femtopb::Message)]
 pub struct M {
@@ -1672,7 +1693,7 @@ pub struct M {
 "#;
         let actual = transform(original);
         assert!(
-            actual.contains("#[femtopb(sfixed64, packed, packed, tag = 1)]"),
+            actual.contains("#[femtopb(sfixed64, packed, tag = 1)]"),
             "{actual}"
         );
         assert!(!actual.contains("repeated"), "{actual}");
