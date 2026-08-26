@@ -141,3 +141,127 @@
 //!     A(i32, &'a str),
 //! }
 //! ```
+//!
+//! A tag below the protobuf minimum of 1 is rejected at expansion time (encoding it would write a
+//! key the decoder rejects):
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(int32, tag = 0)]
+//!     n: i32,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//! ```
+//!
+//! — as is one above the maximum of 2^29 - 1, which would not fit in the 29 bits a field key
+//! reserves for the tag:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(int32, tag = 536870912)]
+//!     n: i32,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//! ```
+//!
+//! The same bounds apply to every entry of a `tags` list:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(oneof, tags = [1, 536870912])]
+//!     c: Option<C>,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//!
+//! #[derive(Clone, PartialEq, femtopb::Oneof)]
+//! enum C {
+//!     #[femtopb(int32, tag = 1)]
+//!     N(i32),
+//! }
+//! ```
+//!
+//! Two fields of a message may not share a tag; the second would never decode:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(int32, tag = 1)]
+//!     a: i32,
+//!     #[femtopb(int32, tag = 1)]
+//!     b: i32,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//! ```
+//!
+//! — nor may a plain field collide with one of a oneof's tags:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(int32, tag = 3)]
+//!     a: i32,
+//!     #[femtopb(oneof, tags = [3, 4])]
+//!     c: Option<C>,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//!
+//! #[derive(Clone, PartialEq, femtopb::Oneof)]
+//! enum C {
+//!     #[femtopb(int32, tag = 3)]
+//!     N(i32),
+//! }
+//! ```
+//!
+//! Two variants of a oneof may not share a tag either:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Oneof)]
+//! enum C {
+//!     #[femtopb(int32, tag = 8)]
+//!     N(i32),
+//!     #[femtopb(int64, tag = 8)]
+//!     M(i64),
+//! }
+//! ```
+//!
+//! A `oneof` field must list its variants' tags, or the generated decoder would have nothing to
+//! match on and the field would silently never decode:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(oneof)]
+//!     c: Option<C>,
+//!     #[femtopb(unknown_fields)]
+//!     u: femtopb::UnknownFields<'a>,
+//! }
+//!
+//! #[derive(Clone, PartialEq, femtopb::Oneof)]
+//! enum C {
+//!     #[femtopb(int32, tag = 1)]
+//!     N(i32),
+//! }
+//! ```
+//!
+//! A message may declare at most one `unknown_fields` field, since only the first backs the
+//! decoder's catch-all arm:
+//!
+//! ```compile_fail
+//! #[derive(Clone, PartialEq, femtopb::Message)]
+//! struct S<'a> {
+//!     #[femtopb(int32, tag = 1)]
+//!     n: i32,
+//!     #[femtopb(unknown_fields)]
+//!     u1: femtopb::UnknownFields<'a>,
+//!     #[femtopb(unknown_fields)]
+//!     u2: femtopb::UnknownFields<'a>,
+//! }
+//! ```

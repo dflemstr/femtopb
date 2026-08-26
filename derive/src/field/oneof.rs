@@ -6,8 +6,18 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new(_span: proc_macro2::Span, spec: &field::Spec) -> syn::Result<Option<Self>> {
+    pub fn new(span: proc_macro2::Span, spec: &field::Spec) -> syn::Result<Option<Self>> {
         if spec.oneof {
+            // Without tags there is nothing for the generated decoder to match on, so the field
+            // would encode but silently never decode: its bytes would be swept into the message's
+            // unknown fields and the oneof would always come back as `None`.
+            if spec.tags.is_empty() {
+                return Err(syn::Error::new(
+                    span,
+                    "A field of type `oneof` must list the tags of its variants in a `tags` \
+                     attribute (e.g. `#[femtopb(oneof, tags = [1, 2])]`)",
+                ));
+            }
             let tags = spec.tags.clone();
             Ok(Some(Self { tags }))
         } else {
